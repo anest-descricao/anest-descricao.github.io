@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Descrições da Ficha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap">
+<style id="app-css">
+/* Layout: lista de títulos à esquerda; à direita o texto pronto, com ajustes rápidos agrupados acima. No celular, uma coluna por vez.
+   Paleta: cinza-papel com viés verde, tinta verde-escura, acento verde de campo cirúrgico. Âmbar só para aviso. */
+:root {
+  --bg: #eef1f0; --painel: #f8faf9; --tinta: #14231f; --suave: #55645f; --linha: #d3dad7;
+  --acento: #17695c; --acento-fg: #ffffff; --sel: #dcebe7; --alerta: #8f4a05; --alerta-bg: #f6e8d3;
+  --fonte: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1816; --painel: #16211e; --tinta: #e4ede9; --suave: #94a59f; --linha: #2a3a35;
+    --acento: #4fb8a5; --acento-fg: #08201b; --sel: #1e332e; --alerta: #e0a050; --alerta-bg: #33260f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1816; --painel: #16211e; --tinta: #e4ede9; --suave: #94a59f; --linha: #2a3a35;
+  --acento: #4fb8a5; --acento-fg: #08201b; --sel: #1e332e; --alerta: #e0a050; --alerta-bg: #33260f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--tinta); font-family: var(--fonte); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+.app { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; align-items: start; }
+.lista, .detalhe { background: var(--painel); border: 1px solid var(--linha); border-radius: 6px; min-width: 0; }
+.lista { padding: 14px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; max-height: calc(100vh - 32px); }
+.topo { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+h1 { font-size: 1.15rem; margin: 0; font-weight: 700; }
+.contagem { color: var(--suave); font-size: .85rem; }
+.busca { width: 100%; padding: 10px 12px; border: 1px solid var(--linha); border-radius: 6px; background: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--linha); background: transparent; border-radius: 999px; padding: 4px 12px; font-size: .85rem; color: var(--suave); }
+.chip[aria-pressed="true"] { background: var(--acento); border-color: var(--acento); color: var(--acento-fg); }
+.itens { list-style: none; margin: 0; padding: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+.item { width: 100%; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+.item:hover { background: var(--bg); }
+.item[aria-current="true"] { background: var(--sel); }
+.item .t { font-weight: 600; overflow-wrap: anywhere; }
+.item .c { font-size: .8rem; color: var(--suave); }
+.vazio { color: var(--suave); padding: 12px 4px; }
+.grupo { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--acento); padding: 14px 10px 4px; border-top: 1px solid var(--linha); margin-top: 6px; }
+.grupo:first-child { border-top: 0; margin-top: 0; padding-top: 4px; }
+.subgrupo { font-size: .78rem; font-weight: 600; color: var(--suave); padding: 8px 10px 2px; }
+
+.btn { border: 1px solid var(--linha); background: var(--painel); border-radius: 6px; padding: 9px 16px; font-weight: 600; }
+.btn.prim { background: var(--acento); border-color: var(--acento); color: var(--acento-fg); font-size: 1.05rem; padding: 10px 24px; }
+.btn.perigo { color: var(--alerta); border-color: var(--alerta); }
+
+.detalhe { padding: 20px; display: flex; flex-direction: column; gap: 14px; min-height: 320px; }
+.cab { display: flex; flex-direction: column; gap: 4px; }
+.cab h2 { margin: 0; font-size: 1.4rem; text-wrap: balance; overflow-wrap: anywhere; }
+.meta { color: var(--suave); font-size: .85rem; }
+.voltar { display: none; align-self: flex-start; background: transparent; border: 0; padding: 0 0 4px; color: var(--acento); font-weight: 600; }
+.acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.faltam { color: var(--alerta); font-size: .85rem; font-weight: 600; }
+.texto { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border: 1px solid var(--linha); border-radius: 6px; padding: 16px; font-size: 1.05rem; line-height: 1.65; margin: 0; }
+textarea.texto { width: 100%; min-height: 55vh; resize: vertical; font-family: inherit; }
+.brancos { font: inherit; border: 0; border-bottom: 2px dashed var(--acento); background: var(--sel); border-radius: 3px 3px 0 0; padding: 0 4px; margin: 0 1px; color: var(--tinta); min-width: 2.2ch; max-width: 100%; }
+.aviso { background: var(--alerta-bg); color: var(--alerta); border-radius: 6px; padding: 8px 12px; font-size: .9rem; font-weight: 600; }
+.nota { color: var(--suave); font-size: .85rem; }
+
+/* painéis de ajuste: um bloco por assunto, recolhível */
+details.painel { border: 1px solid var(--linha); border-radius: 6px; }
+details.painel > summary { cursor: pointer; font-weight: 700; padding: 9px 12px; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+details.painel > summary::-webkit-details-marker { display: none; }
+details.painel > summary::after { content: "+"; color: var(--acento); font-weight: 700; }
+details.painel[open] > summary::after { content: "–"; }
+details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 12px; }
+.sub { font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--acento); }
+.ajustes { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
+.aj { display: flex; flex-direction: column; gap: 4px; }
+.aj .r { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--suave); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--linha); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-right: 1px solid var(--linha); background: transparent; padding: 7px 12px; min-width: 40px; font-weight: 600; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--acento); color: var(--acento-fg); }
+.aj select, .cartao select { padding: 7px 10px; border: 1px solid var(--linha); border-radius: 6px; background: var(--bg); min-width: 76px; max-width: 100%; }
+.aj select[data-mudou="1"] { border-color: var(--acento); font-weight: 700; }
+.limpar { background: transparent; border: 0; color: var(--acento); text-decoration: underline; font-size: .85rem; padding: 7px 0; }
+.cartoes { display: flex; flex-direction: column; gap: 8px; }
+.cartao { border: 1px solid var(--linha); border-radius: 6px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: var(--bg); }
+.cartao .nome { font-weight: 700; flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.cartao .tira { background: transparent; border: 0; color: var(--alerta); font-weight: 700; padding: 4px 6px; }
+.dose { padding: 7px 8px; border: 1px solid var(--linha); border-radius: 6px; background: var(--painel); width: 9ch; }
+.regioes { display: flex; flex-wrap: wrap; gap: 6px; }
+.form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.form input { padding: 8px 10px; border: 1px solid var(--linha); border-radius: 6px; background: var(--bg); min-width: 220px; }
+.usoaviso { margin: 6px 0 10px; padding: 8px 10px; border-left: 3px solid var(--alerta); background: var(--alerta-bg); color: var(--alerta); font-size: .85rem; line-height: 1.35; border-radius: 4px; }
+.rodape { max-width: 1100px; margin: 12px auto 0; color: var(--suave); font-size: .85rem; }
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .lista { position: static; max-height: none; }
+  .app[data-vista="lista"] .detalhe { display: none; }
+  .app[data-vista="detalhe"] .lista { display: none; }
+  .voltar { display: inline-block; }
+  .detalhe { padding: 16px; }
+  .btn.prim { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="application/json" id="dados">{"versao": 1, "itens": [{"id": "i001", "titulo": "IOT básica", "cat": "Anestesia geral", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i002", "titulo": "ML básica", "cat": "Anestesia geral", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- Passagem de máscara laríngea lubrificada com gel sem resistência ou intercorrências.\n- Dentição e lábios conferidos antes e após a passagem da máscara laríngea, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, retirada de máscara laríngea com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i003", "titulo": "ML básica (perneiras)", "cat": "Anestesia geral", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- Passagem de máscara laríngea lubrificada com gel sem resistência ou intercorrências.\n- Dentição e lábios conferidos antes e após a passagem da máscara laríngea, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxim occipital, pernas em perneiras acolchoadas e protegidas, fossa poplítea protegida, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, retirada de máscara laríngea com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i004", "titulo": "IOT infantil / PED", "cat": "Anestesia geral", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração, manta térmica.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia para mãe. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Indução inalatória com paciente calmo, acompanhado pela mãe, sem intercorrências, mantida manutenção hemodinâmica.\n- Venóclise puncionada, jelco 22g MSD, punção única, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico\n- Denitrogenação com O2 a 90% sob máscara facial.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 4 posicionada a 14 cm da rima. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss ao longo, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i005", "titulo": "IOT nasal básica", "cat": "Anestesia geral", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- Preparo de nasofaringe com oximetazolina e lidocaína gel. Passagem de ETT sem resistência por narina direita.\n- INTUBAÇÃO NASOTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela nasofaringe, Cormack 1, sonda Rae nasal com cuff número 7,0 posicionada conforme medidas de tubo. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Sonda fixada por equipe cirúrgica.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss ao longo protegidos e neutros, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i006", "titulo": "Sedação básica", "cat": "Sedação e raqui", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 22g MSE punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação moderada + suporte de O2 em cateter nasal 2L/min.\n- Posicionamento em DDH, com mmss abduzidos 90 graus e protegidos, proteção de zonas de pressão periodicamente checada.\n- Ao término, zonas de pressão reavaliadas, sem lesões evidenciadas.\n- Ao término do procedimento, sem intercorrências, paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA sem queixas, com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i007", "titulo": "Raqui básica", "cat": "Sedação e raqui", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 22g MSE punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação leve, paciente colaborativo e comunicativo, + suporte de O2 em cateter nasal 2L/min.\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Raquianestesia com assepsia/antissepsia, botão anestésico, em L4-L5, agulha W27, sem parestesia ou dor, refluxo de líquor claro e normotenso, injeção lenta.\n- Bloqueio sensitivo (nível T___) e motor instalados e avaliados.\n- Sedação complementada para moderada após o bloqueio.\n- Posicionamento em DDH, com mmss abduzidos 90 graus e protegidos, proteção de zonas de pressão periodicamente checada.\n- Ao término, zonas de pressão reavaliadas, sem lesões evidenciadas.\n- Ao término do procedimento, sem intercorrências, paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA sem queixas, com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i008", "titulo": "Raqui quadril", "cat": "Sedação e raqui", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise prévia funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação leve, paciente colaborativo e comunicativo, + suporte de O2 em cateter nasal 2L/min.\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Raquianestesia com assepsia/antissepsia, botão anestésico, em L4-L5, agulha W27, sem parestesia ou dor, refluxo de líquor claro e normotenso, injeção lenta.\n- Bloqueio sensitivo (nível T___) e motor instalados e avaliados.\n- Sedação complementada para moderada após o bloqueio.\n- Venóclise 18g MSE punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Troca para máscara não reinalante 5L/min.\n- Posicionamento em DLD oblíquo, com MSE sobre o corpo protegido com coxim e MSE abduzido, ângulo < 90 graus, em apoio acolchoado, com coxins axilar (axila livre), proteção genicular e intergenicular, inter calcâneos, cabeça em travesseiro proteção de zonas de pressão periodicamente checada, fixação de paciente com esparadrapo + cinta com longo coxim de apoio ao longo de corpo à direita, coxa esquerda exposta.\n- Ao término, zonas de pressão reavaliadas, sem lesões evidenciadas.\n- Ao término do procedimento, sem intercorrências, paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA sem queixas, com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i009", "titulo": "IOT + raqui", "cat": "Geral + neuroeixo", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Raquianestesia com assepsia/antissepsia, botão anestésico, em L4-L5, agulha W27, sem parestesia ou dor, refluxo de líquor claro e normotenso, injeção lenta.\n- Bloqueio sensitivo (nível T___) e motor instalados e avaliados.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i010", "titulo": "IOT + peridural", "cat": "Geral + neuroeixo", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Realizada peridural contínua: assepsia/antissepsia, analgesia local, punção com T18 L3-L4, perda de resistência com ar, aspiração negativa para sangue e líquor, dose-teste sem sinais de injeção intravascular ou subaracnóidea, injeção anestésica, passagem de cateter peridural em direção ascendente, fixado em 10cm (5cm em espaço), procedimento sem intercorrências, dor ou parestesia.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i011", "titulo": "IOT + peridural, lateral", "cat": "Geral + neuroeixo", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Realizada peridural contínua: assepsia/antissepsia, analgesia local, punção com T18 L3-L4, perda de resistência com ar, aspiração negativa para sangue e líquor, dose-teste sem sinais de injeção intravascular ou subaracnóidea, injeção anestésica, passagem de cateter peridural em direção ascendente, fixado em 10cm (5cm em espaço), procedimento sem intercorrências, dor ou parestesia.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore. Termômetro passado sem resistência.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica inferior.\n- Posicionamento em DLE, com MSD abduzido e MSE protegido em ângulos < 90o com caixa de ovo em perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i012", "titulo": "IOT + peridural, lateral, tórax (duplo-lúmen)", "cat": "Geral + neuroeixo", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Realizada peridural contínua: assepsia/antissepsia, analgesia local, punção com T18 L3-L4, perda de resistência com ar, aspiração negativa para sangue e líquor, dose-teste sem sinais de injeção intravascular ou subaracnóidea, injeção anestésica, passagem de cateter peridural em direção ascendente, fixado em 10cm (5cm em espaço), procedimento sem intercorrências, dor ou parestesia.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do DLT pela orofaringe, Cormack 1, sonda duplo-lúmen com cuff número 35 posicionada a 28 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Checagem com fibroscopia infantil, balonete bronquial bem locado e não herniado, brônquio direito livre. Fixo sonda com micropore. Termômetro passado sem resistência.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica inferior.\n- Posicionamento em DLE, com MSD abduzido e MSE protegido em ângulos < 90o com caixa de ovo em perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i013", "titulo": "IOT + raqui, lateral (nefrectomia VLP)", "cat": "Geral + neuroeixo", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 22g MSE, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente\n- Condições de coagulação e uso de anticoagulantes conferidos, dentro dos intervalos de segurança para bloqueio neuroaxial, e sem déficit neurológico prévio.\n- Raquianestesia com assepsia/antissepsia, botão anestésico, em L4-L5, agulha W27, sem parestesia ou dor, refluxo de líquor claro e normotenso, injeção lenta.\n- Bloqueio sensitivo (nível T___) e motor instalados e avaliados.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore. Termômetro passado sem resistência.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em oblíquo/DLE, com MSE abduzido e MSD protegido em ângulos < 90o com caixa de ovo em suporte perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i014", "titulo": "Faco / oftalmo (sedação)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica e entregado anestésico oftálmico.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 22g MSE punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação leve e consciente para ansiólise e oclusão ocular + suporte de O2 em mistura 50/50 de ar e O2 em cateter nasal 2L/min.\n- Posicionamento em DDH, com mmss ao longo e protegidos, proteção de zonas de pressão periodicamente checada. Cabeça fixada na testa para imobilidade de cabeça.\n- Ao término, zonas de pressão reavaliadas, sem lesões evidenciadas.\n- Ao término do procedimento, sem intercorrências, paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA sem queixas, com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i015", "titulo": "Ombro, cadeira de praia (IOT + interescalênico)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 20G MSE punção única, asséptica, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Sedação consciente.\n- Bloqueio interescalênico asséptico em MSD com USG + NE (sem estímulos < 0,5), ropivacaína 0,375% 15ml + dexametasona 4mg, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências ou queixas do paciente. Paciente orientado quanto à dormência e à proteção do membro bloqueado.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda aramada com cuff número 7,5 posicionada a 25 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em cadeira de praia, com MSD em campo e MSE protegido em ângulo < 90o, com coxins infragenicular, calcâneos e cabeça em protetor específico e protegida, orelhas, olhos e resto da face livres e protegidos, proteção de zonas de pressão periodicamente checadas.\n- PAM mantida conforme inicial, PAs > 90 em todo procedimento.\n- Instalação de meias elásticas de compressão média e manta térmica inferior. Normotermia mantida.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i016", "titulo": "Robô, próstata (IOT)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- AVP 20G MSE, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta, utilizado fio guia: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 8,0 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com multifix.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- SNG calibrosa + termômetro passados sem resistência.\n- AVP 18G MSD, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Posicionamento em DDH, com mmss ao longo protegidos com espuma, com mmii em litotomia (em perneiras acolchoadas) e coxim occipital + proteção lombar, proteção de zonas de pressão periodicamente checada, todos acessos funcionantes, cinta instalada em tórax bem aplicada com suporte para Trendelenburg acentuado.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i017", "titulo": "RTU com ML", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica. Limites práticos sugeridos: tempo < 90 minutos. Altura de soros de infusão < 60cm acima do púbis. Glicemia inicial + h/h. Manutenção de curarização durante procedimento.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- Passagem de máscara laríngea lubrificada com gel sem resistência ou intercorrências.\n- Dentição e lábios conferidos antes e após a passagem da máscara laríngea, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos < 90 graus, com perneira acolchoada e apropriada para mmii e coxim occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, retirada de máscara laríngea com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i018", "titulo": "Coluna, decúbito ventral (IOT)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização. Realizado manejo ativo de prevenção de hipotermia, manta ligada pré-indução, ar desligado.\n- Venóclise 18G MSD, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda aramada com cuff número 7,5 posicionada a 22 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + gaze + filme plástico.\n- Proteção de língua com rolo de gaze, colocação de mepilex em regiões de pressão em quadril (bi-ilíaco), costela (rebordo costal a inframamário), afastamento de mamas, e face (frontal, bi-zigomático, mentoniano).\n- Posicionamento em ventral, com mmss abduzidos 90 graus ao lado da cabeça, com coxins sob torso bi-ilíaco + tóracico bilateral, mantendo tórax e abdômen livres, joelhos, pés e calcâneos protegidos sem extensão exagerada, travesseiro sob pernas e coxim apropriado em face, proteção de zonas de pressão periodicamente checada, olhos e regiões sensíveis do rosto livres. A cada 2 horas realizada descompressão de face com técnica de aprofundamento do coxim facial.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior. Termômetro passado sem resistência.\n- Ao término do procedimento, paciente virado para DDH, avaliação de regiões de pressão, face, olhos, dentição e lábios, sem lesões evidenciadas.\n- Paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i019", "titulo": "Neurocirurgia, DLD oblíquo (paciente da UTI, intubado)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Identificação do paciente e transporte da UTI ao centro cirúrgico: paciente sedado, RASS -5, pupilas anisocóricas (E>D), IOT +VM, CVC VFD recebendo noradrenalina ___ mL/h\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Acoplamento à ventilação mecânica em aparelho de anestesia. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente).\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Novo AVP 18G em MSD punção única, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Cateterização de artéria radial direita: procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado adequado. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo. PAM calibrada em altura do meato, mantida para garantir perfusão neurológica, PAm > 90 em todo procedimento.\n- Posicionamento em DLD oblíquo, com mmss ao longo, com coxins axilar (axila livre), intergenicular, inter calcâneos, cabeça fixada em Mayfield (pinado sem intercorrências) proteção de zonas de pressão periodicamente checada, fixação de paciente com esparadrapo + cinta.\n- Instalação de meias compressoras pneumáticas e manta térmica corpo inteiro.\n- Cirurgia liberada\n- Assistência clínica e manutenção com anestesia venosa total:\n    *ATB profilaxia: Cefuroxima 1,5g às __:__\n    *Reposição volêmica: ___ mL Ringer Lactato no intra-op\n    *Transfusão sanguínea: ___\n    *Diurese: ___\n    *Sintomáticos: ___\n    *Exames: gasometrias pareadas (Hb __ às __:__ - corrigido com ___)", "atualizado": "2026-10-28"}, {"id": "i020", "titulo": "Neurocirurgia, DDH com scalp block (extubado)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Identificação do paciente.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda simples com cuff número 8,0 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico + gaze.\n- Termômetro passado sem resistência.\n- Realizado bloqueio scalp block com ropivacaína 0,5% 20ml (1,5-2ml por ponto), em 12 pontos (supraorbital/supratroclear + zigomático-temporal + auriculotemporal + auricular magno + occipital maior + occipital menor bilateralmente), aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, técnica asséptica com agulha fina de insulina.\n- Novo AVP 18G em MSD punção única, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Cateterização de artéria radial direita: procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado adequado. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo. PAM calibrada em altura do meato, mantida para garantir perfusão neurológica, PAm > 90 em todo procedimento.\n- Cateter venoso central: procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção de VJID com a técnica de Seldinger e passagem de cateter duplo-lúmen 7 Fr sem intercorrências. Checo com ultrassom. Teste de fluxo e refluxo de todas as vias OK. Fixação com 3 pontos e realização de curativo estéril.\n- Posicionamento em DDH, com mmss ao longo, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada, cabeça fixada em Mayfield (pinado sem intercorrências) proteção de zonas de pressão periodicamente checada, fixação de paciente com esparadrapo + cinta.\n- Instalação de meias compressoras pneumáticas e manta térmica corpo inteiro.\n- Cirurgia liberada\n- Assistência clínica e manutenção com anestesia venosa total:\n    *ATB profilaxia: Cefuroxima 1,5g às __:__\n    *Reposição volêmica: ___ mL Ringer Lactato no intra-op\n    *Transfusão sanguínea: ___\n    *Diurese: ___\n    *Sintomáticos: ___\n    *Exames: gasometrias pareadas (Hb __ às __:__ - corrigido com ___)\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i021", "titulo": "Septoplastia / face simples / ORL / CCP simples / artrodese cervical anterior (IOT)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise 22g MSD punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda aramada com cuff número 7,0 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico + gaze.\n- Posicionamento em DDH, com ligeiro cefaloaclive de 15 graus para melhor drenagem, com mmss ao longo protegidos, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração de orofaringe e estômago + aspiração prévia por equipe cirúrgica, extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i022", "titulo": "CCP grande (IOT + CVC + arterial)", "cat": "Por cirurgia", "texto": "- Chegada do anestesista à SO.\n- Aparelhos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n- Aguardamos a equipe de cirurgia. Discutido caso com a equipe cirúrgica.\n- Paciente admitido em sala. Me apresento e explico anestesia. Avaliação pré-anestésica OK e TCLE assinado.\n- Time-out realizado conforme protocolo institucional.\n- Monitorização.\n- Venóclise funcionante, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Denitrogenação com O2 a 90% sob máscara facial.\n- Indução anestésica venosa guiada por valores de BIS (limiar mantido de consciência 45-60) e mantendo estabilidade hemodinâmica.\n- INTUBAÇÃO OROTRAQUEAL atraumática com laringoscopia direta: sem sangramentos proveniente da passagem do ETT pela orofaringe, Cormack 1, sonda aramada com cuff número 7,5 posicionada a 24 cm da rima. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore.\n- Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n- Ausculta pulmonar bilateral simétrica, ETCO2 ok.\n- Proteção ocular bilateral com pomada ocular + filme plástico.\n- Posicionamento em DDH, com mmss abduzidos 90 graus, dorso elevado 30º, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada.\n- Novo AVP 18G em MSD, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n- Cateter venoso central: procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção de Veia Femoral Esquerda com a técnica de Seldinger e passagem de cateter triplo lúmen 7 Fr sem intercorrências. Checo com ultrassom. Teste de fluxo e refluxo de todas as vias OK. Fixação com 3 pontos e realização de curativo estéril.\n- Cateterização de artéria radial esquerda: procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção com kit 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.\n- Instalação de meias elásticas de compressão média, meias compressoras pneumáticas e manta térmica superior.\n- Ao término do procedimento, paciente descurarizado, aspiração e extubação com ventilação regular e volume adequado (pré extubação em PSV sustentada com pressão suporte 7, peep 5, trigger 3) e abertura ocular espontânea, sem intercorrências.\n- Ao término, reavaliados dentição e lábios, olhos e zonas de pressão, sem lesões evidenciadas.\n- Paciente estável, transportado monitorizado e com O2 suplementar, encaminhado para a RPA com passagem de caso à equipe.", "atualizado": "2026-10-28"}, {"id": "i023", "titulo": "IOT nasal com videolaringoscopia, CVC e arterial (ficha numerada)", "cat": "Ficha numerada", "texto": "1 - Aparelhos e equipamentos checados. Preparo de drogas anestésicas, materiais de vias aéreas e aspiração.\n2 - Avaliação pré-anestésica OK e TCLE assinado.\n3 - Entrada do paciente em sala: me apresento e explico anestesia. Esclareço dúvidas. Paciente em REG, LOTE, Glasgow 15, com ___. Converso que faremos anestesia tópica e ansiólise para fazer avaliação da via aérea, e caso não seja encontrada dificuldades na laringoscopia, procederemos com indução anestésica habitual. Paciente ciente e de acordo. Time-out realizado conforme protocolo institucional.\n4 - Transferência do paciente da maca para a mesa de cirurgia com \"transfer\" em conjunto com equipe cirúrgica e de enfermagem.\n5 - Realizo monitorização básica do paciente com cardioscópio (ritmo cardíaco sinusal e regular), PANI em MSD ( PA ___ x ___ mmHg), oxímetro de pulso (SpO2 ___ % e FC ___ bpm), e sensor de BIS em região frontal da cabeça (BIS de ___)\n6 - Checo venóclise prévia: 22G em MSE não funcionante. Puncionado novo AVP 20G em MSE com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n7 - Pré-oxigenação com O2 a 90% sob máscara facial e sedação consciente com bolus intermitente de Fentanil. Anestesia tópica da língua, boca, orofaringe com atomizador e Lidocaína 2%. Paciente confortável durante procedimento. Realizo videolaringoscopia, com boa visualização da região glótica, sem distorções anatômicas.\n8 - Aplico vasoconstritor nasal em narina direita + Indução anestésica venosa guiada por valores de BIS e mantendo estabilidade hemodinâmica + aplicação de lidocaína gel em narina direita\n9 - INTUBAÇÃO NASOTRAQUEAL atraumática com videolaringoscopio (McGrath): sem sangramentos proveniente da passagem do ETT pela nasofaringe, Cormack 1, sonda aramada com cuff número 6,5 posicionada a 26 cm da abertura nasal direita. Insuflo cuff. Ventilação confirmada com capnografia (curva positiva e retangular com ETCO2 = 37 mmHg) e ausculta pulmonar (MV presente e simétrico bilateralmente). Fixo sonda com micropore. Dentição e lábios conferidos antes e após a laringoscopia, sem lesões.\n10 - Acoplo a ventilação mecânica invasiva modo VCV:  Vc ___, FR ___, FiO2 ___%, PEEP ___.\n11 - Realizo proteção ocular bilateral: gel oftálmico + oclusão com filme plástico\n12 - Novo AVP 18G em MSD, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.\n13 - Cateter venoso central: procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção de Veia Femoral Esquerda com a técnica de Seldinger e passagem de cateter triplo lúmen 7 Fr sem intercorrências. Checo com ultrassom. Teste de fluxo e refluxo de todas as vias OK. Fixação com pontos em bailarina e realização de curativo estéril.\n14 - Cateterização de artéria radial direita: procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.\n15 - Paciente posicionado em DDH com braços ao longo do corpo e proteção de zonas de pressão.\n16 - Cirurgia liberada\n17 - Assistência clínica e manutenção com anestesia venosa total:\n    *ATB profilaxia: Metronidazol 500mg e Cefazolina 2g ás __:__ horas. Repiques: Cefazolina 1g ás __h / Cefazolina 1g ás __h /\n    *Reposição volêmica: ___ mL Ringer Lactato no intra-op\n    *Diurese: ___\n    *Sintomáticos: ___\n    *Exames: gasometrias pareadas (Glicemia ___ ás __h - corrigido com Insulina Regular ___ UI EV )", "atualizado": "2026-10-28"}, {"id": "b001", "titulo": "Interescalênico", "cat": "Bloqueios", "bq": "isb", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico interescalênico em MSD guiado por USG + NE (sem estímulo < 0,5 mA), com ropivacaína 0,375% 15ml + dexametasona 4mg, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b002", "titulo": "Tronco superior", "cat": "Bloqueios", "bq": "stb", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico do tronco superior em MSD, com ropivacaína 0,5% 15ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b003", "titulo": "Supraclavicular", "cat": "Bloqueios", "bq": "supra", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico supraclavicular em MSD, com ropivacaína 0,5% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b004", "titulo": "Costoclavicular / infraclavicular", "cat": "Bloqueios", "bq": "costo", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico costoclavicular em MSD, com ropivacaína 0,5% 20ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b005", "titulo": "Axilar", "cat": "Bloqueios", "bq": "axilar", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico axilar em MSD, com ropivacaína 0,5% 20ml guiado por USG + NE (sem estímulo < 0,5 mA), pressão de abertura < 15 psi, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b006", "titulo": "Supraescapular", "cat": "Bloqueios", "bq": "supraesc", "sub": "Membro superior", "texto": "- Realizado bloqueio periférico supraescapular em MSD, com ropivacaína ___% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b007", "titulo": "Clavipeitoral (CPF), clavícula", "cat": "Bloqueios", "bq": "cpf", "sub": "Membro superior", "texto": "- Realizado bloqueio do plano fascial clavipeitoral em MSD, com ropivacaína 0,5% ___ml por ponto (2 pontos) + dexametasona 2mg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b008", "titulo": "Plexo cervical intermediário / nn. supraclaviculares", "cat": "Bloqueios", "bq": "cerv", "sub": "Cabeça e pescoço", "texto": "- Realizado bloqueio periférico do plexo cervical intermediário à direita, com ropivacaína ___% 10ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b009", "titulo": "Scalp block", "cat": "Bloqueios", "bq": "scalp", "sub": "Cabeça e pescoço", "texto": "- Realizado bloqueio scalp block com ropivacaína 0,5% 20ml (1,5-2ml por ponto), em 12 pontos (supraorbital/supratroclear + zigomático-temporal + auriculotemporal + auricular magno + occipital maior + occipital menor bilateralmente), aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, técnica asséptica com agulha fina de insulina.", "atualizado": "2026-10-28"}, {"id": "b010", "titulo": "ESP (eretor da espinha)", "cat": "Bloqueios", "bq": "esp", "sub": "Tronco", "texto": "- Realizado bloqueio periférico eretor da espinha (ESP block) à direita, com ropivacaína 0,5% 30ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b011", "titulo": "SAM (serrátil anterior)", "cat": "Bloqueios", "bq": "sam", "sub": "Tronco", "texto": "- Realizado bloqueio periférico SAM (serrátil anterior) à direita, com ropivacaína 0,375% 20ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b012", "titulo": "Paraesternal superficial", "cat": "Bloqueios", "bq": "parae", "sub": "Tronco", "texto": "- Realizado bloqueio periférico paraesternal superficial bilateral, com ropivacaína 0,375% 20ml guiado por USG, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b013", "titulo": "TAP subcostal oblíquo", "cat": "Bloqueios", "bq": "tap", "sub": "Tronco", "texto": "- Realizado bloqueio periférico TAP subcostal oblíquo bilateral, com ropivacaína 0,375% 20ml por lado guiado por USG, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b014", "titulo": "Bainha do reto", "cat": "Bloqueios", "bq": "bainha", "sub": "Tronco", "texto": "- Realizado bloqueio da bainha do reto bilateral, com ropivacaína ___% 20ml em cada um dos ___ pontos guiado por USG, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b015", "titulo": "Paravertebral", "cat": "Bloqueios", "bq": "pvb", "sub": "Tronco", "texto": "- Realizado bloqueio paravertebral à direita em ___ (nível), com ropivacaína 0,5% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b016", "titulo": "Quadrado lombar", "cat": "Bloqueios", "bq": "ql", "sub": "Tronco", "texto": "- Realizado bloqueio periférico do quadrado lombar à direita, com ropivacaína ___% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b017", "titulo": "TFP (plano transverso fascial proximal)", "cat": "Bloqueios", "bq": "tfp", "sub": "Tronco", "texto": "- Realizado bloqueio TFP à direita, com anestésico local ___ ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b018", "titulo": "Ilioinguinal-iliohipogástrico", "cat": "Bloqueios", "bq": "iiih", "sub": "Tronco", "texto": "- Realizado bloqueio ilioinguinal-iliohipogástrico à direita, com anestésico local ___ ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b019", "titulo": "Canal dos adutores (ACB)", "cat": "Bloqueios", "bq": "acb", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do canal dos adutores em MID, com ropivacaína 0,5% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b020", "titulo": "IPACK", "cat": "Bloqueios", "bq": "ipack", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico IPACK em MID, com ropivacaína 0,2% 20ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b021", "titulo": "PENG", "cat": "Bloqueios", "bq": "peng", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico PENG em MID, com ropivacaína 0,375% 20ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b022", "titulo": "Cutâneo femoral lateral (LFC)", "cat": "Bloqueios", "bq": "lfc", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do nervo cutâneo femoral lateral em MID, com anestésico local ___ 10ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b023", "titulo": "Fáscia ilíaca supra-inguinal", "cat": "Bloqueios", "bq": "fascia", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico da fáscia ilíaca supra-inguinal em MID, com ropivacaína ___% 30ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b024", "titulo": "Femoral", "cat": "Bloqueios", "bq": "femoral", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico femoral em MID, com ropivacaína ___% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b025", "titulo": "Ciático", "cat": "Bloqueios", "bq": "ciatico", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do nervo ciático em MID (___), com ropivacaína ___% ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b026", "titulo": "Poplíteo", "cat": "Bloqueios", "bq": "poplito", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do nervo ciático na fossa poplítea em MID, com ropivacaína 0,5% ___ml (até 20ml) + clonidina 75mcg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b027", "titulo": "Safeno", "cat": "Bloqueios", "bq": "safeno", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do nervo safeno (canal dos adutores) em MID, com ropivacaína 0,5% ___ml + clonidina 75mcg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b028", "titulo": "Obturatório", "cat": "Bloqueios", "bq": "obtur", "sub": "Membro inferior", "texto": "- Realizado bloqueio periférico do nervo obturatório em MID, com anestésico local ___ ___ml guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "atualizado": "2026-10-28"}, {"id": "b029", "titulo": "Pudendo", "cat": "Bloqueios", "bq": "pudendo", "sub": "Pelve e períneo", "texto": "- Realizado bloqueio periférico pudendo bilateral, com ropivacaína 0,5% ___ml por lado (+ dexmedetomidina 0,5 mcg/kg) guiado por USG, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "atualizado": "2026-10-28"}, {"id": "b030", "titulo": "Peniano (DPNB) + anel, adulto", "cat": "Bloqueios", "bq": "dpnb", "sub": "Pelve e períneo", "texto": "- Realizado bloqueio do nervo dorsal do pênis bilateral com bupivacaína ___% 5ml de cada lado, associado a botão subcutâneo em anel na base do pênis (___ml), aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "atualizado": "2026-10-28"}, {"id": "b031", "titulo": "Peniano (DPNB) + anel, pediátrico", "cat": "Bloqueios", "bq": "dpnbp", "sub": "Pelve e períneo", "texto": "- Realizado bloqueio do nervo dorsal do pênis bilateral com bupivacaína 0,25% 0,1ml/kg de cada lado, associado a botão subcutâneo em anel na base do pênis, aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "atualizado": "2026-10-28"}, {"id": "b032", "titulo": "Caudal pediátrico", "cat": "Bloqueios", "bq": "caudal", "sub": "Pelve e períneo", "texto": "- Realizado bloqueio caudal com bupivacaína 0,25% 0,5ml/kg, aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "atualizado": "2026-10-28"}, {"id": "i028", "titulo": "Novo acesso venoso 18G", "cat": "Blocos avulsos", "texto": "- Novo AVP 18G em MSD, com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.", "atualizado": "2026-10-28"}, {"id": "i029", "titulo": "CVC jugular direita (USG)", "cat": "Blocos avulsos", "texto": "- Cateter venoso central: procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção de Veia Jugular Direita com a técnica de Seldinger e passagem de cateter triplo lúmen 7 Fr sem intercorrências. Checo com ultrassom. Teste de fluxo e refluxo de todas as vias OK. Fixação com pontos em bailarina e realização de curativo estéril.", "atualizado": "2026-10-28"}, {"id": "i030", "titulo": "Artéria radial direita", "cat": "Blocos avulsos", "texto": "- Cateterização de artéria radial direita: procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.", "atualizado": "2026-10-28"}, {"id": "i031", "titulo": "Sequência rápida (SR)", "cat": "Blocos avulsos", "texto": "- Denitrogenação com O2 3L/min a 100% sob máscara facial.\n- Realizada manobra de Sellick e mantida até confirmação de IOT. Indução anestésica venosa em sequência rápida mantendo estabilidade hemodinâmica. Decúbito elevado 30º, sniff position. Técnica No-Desat O2 15L/min.", "atualizado": "2026-10-28"}, {"id": "i032", "titulo": "Fibroscopia nasal (IOT acordado)", "cat": "Blocos avulsos", "texto": "- Pré-oxigenação com O2 a 100% sob cateter nasal 2L/min por 10mins.\n- Paciente sob sedação consciente, realizada anestesia tópica em cavidade oral e nasal com solução paste lidocaína 2% e lidocaína líquida 2% 10ml, além de preparo nasal com oximetazolina.\n- Realizada anestesia translaríngea com jelco 20G, punção de membrana cricotireóidea sem intercorrências, aspiração de ar, mantido jelco e injetado 2ml lidocaína.\n- Passagem sem resistência de TOT aramado #6,0 por narina E, anestesia \"spray as you go\" com fibroscópio em epiglote e cordas vocais.\n- Introduzido TOT até 2cm da carina, fixação de TOT.\n- Paciente calmo e colaborativo em todo procedimento. ETCO2 confirmado, realizo indução.", "atualizado": "2026-10-28"}, {"id": "i033", "titulo": "Pedido de ressonância com anestesia: pacientes da UTI", "cat": "Respostas padrão", "texto": "_A avaliação dos pacientes que necessitem de Anestesia Geral (exame NÃO é realizado sob sedação) ou que estejam em ventilação mecânica que estejam internados em UTI será realizada no dia do exame, pois podem apresentar labilidade no quadro clínico. A equipe de anestesiologia aguardará o paciente no setor da RNM, ficando o acompanhamento clínico durante a transferência entre os setores sob responsabilidade da equipe da UTI. Lembramos que bombas de infusão não são compatíveis com o exame devido ao campo magnético._\n_Favor ligar para equipe anestesia no ramal ____ quando familiar ou responsável presente para assinatura do Termo de Consentimento, caso paciente confuso ou impossibilitado de assinatura do documento._\n_Caso não haja necessidade de Anestesia Geral ou o paciente em ventilação espontânea, a realização do exame será acompanhada em sua totalidade pela equipe da UTI._", "atualizado": "2026-10-28"}], "bloqueios": [{"id": "isb", "nome": "Interescalênico", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico interescalênico em {lado} guiado por USG + NE (sem estímulo < 0,5 mA), com {dose} + dexametasona 4mg, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,375%", "v": "15ml"}}, {"id": "stb", "nome": "Tronco superior", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico do tronco superior em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "15ml"}}, {"id": "supra", "nome": "Supraclavicular", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico supraclavicular em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "costo", "nome": "Costoclavicular / infraclavicular", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico costoclavicular em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "20ml"}}, {"id": "axilar", "nome": "Axilar", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico axilar em {lado}, com {dose} guiado por USG + NE (sem estímulo < 0,5 mA), pressão de abertura < 15 psi, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "20ml"}}, {"id": "supraesc", "nome": "Supraescapular", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio periférico supraescapular em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "___ml"}}, {"id": "cpf", "nome": "Clavipeitoral (CPF), clavícula", "regiao": "Membro superior", "lado": "ms", "texto": "- Realizado bloqueio do plano fascial clavipeitoral em {lado}, com {dose} por ponto (2 pontos) + dexametasona 2mg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "cerv", "nome": "Plexo cervical intermediário / nn. supraclaviculares", "regiao": "Cabeça e pescoço", "lado": "a", "texto": "- Realizado bloqueio periférico do plexo cervical intermediário {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "10ml"}}, {"id": "scalp", "nome": "Scalp block", "regiao": "Cabeça e pescoço", "lado": "nenhum", "texto": "- Realizado bloqueio scalp block com {dose} (1,5-2ml por ponto), em 12 pontos (supraorbital/supratroclear + zigomático-temporal + auriculotemporal + auricular magno + occipital maior + occipital menor bilateralmente), aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, técnica asséptica com agulha fina de insulina.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "20ml"}}, {"id": "esp", "nome": "ESP (eretor da espinha)", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio periférico eretor da espinha (ESP block) {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "30ml"}}, {"id": "sam", "nome": "SAM (serrátil anterior)", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio periférico SAM (serrátil anterior) {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,375%", "v": "20ml"}}, {"id": "parae", "nome": "Paraesternal superficial", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio periférico paraesternal superficial {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "B", "dose": {"a": "ropivacaína", "c": "0,375%", "v": "20ml"}}, {"id": "tap", "nome": "TAP subcostal oblíquo", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio periférico TAP subcostal oblíquo {lado}, com {dose} por lado guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "B", "dose": {"a": "ropivacaína", "c": "0,375%", "v": "20ml"}}, {"id": "bainha", "nome": "Bainha do reto", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio da bainha do reto {lado}, com {dose} em cada um dos ___ pontos guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "B", "dose": {"a": "ropivacaína", "c": "___%", "v": "20ml"}}, {"id": "pvb", "nome": "Paravertebral", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio paravertebral {lado} em ___ (nível), com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "ql", "nome": "Quadrado lombar", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio periférico do quadrado lombar {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "___ml"}}, {"id": "tfp", "nome": "TFP (plano transverso fascial proximal)", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio TFP {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": false, "padrao": "D", "dose": {"a": "anestésico local", "c": "___", "v": "___ml"}}, {"id": "iiih", "nome": "Ilioinguinal-iliohipogástrico", "regiao": "Tronco", "lado": "a", "texto": "- Realizado bloqueio ilioinguinal-iliohipogástrico {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": false, "padrao": "D", "dose": {"a": "anestésico local", "c": "___", "v": "___ml"}}, {"id": "acb", "nome": "Canal dos adutores (ACB)", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do canal dos adutores em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "ipack", "nome": "IPACK", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico IPACK em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,2%", "v": "20ml"}}, {"id": "peng", "nome": "PENG", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico PENG em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,375%", "v": "20ml"}}, {"id": "lfc", "nome": "Cutâneo femoral lateral (LFC)", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do nervo cutâneo femoral lateral em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "anestésico local", "c": "___", "v": "10ml"}}, {"id": "fascia", "nome": "Fáscia ilíaca supra-inguinal", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico da fáscia ilíaca supra-inguinal em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "30ml"}}, {"id": "femoral", "nome": "Femoral", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico femoral em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "___ml"}}, {"id": "ciatico", "nome": "Ciático", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do nervo ciático em {lado} (___), com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "___%", "v": "___ml"}}, {"id": "poplito", "nome": "Poplíteo", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do nervo ciático na fossa poplítea em {lado}, com {dose} (até 20ml) + clonidina 75mcg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "safeno", "nome": "Safeno", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do nervo safeno (canal dos adutores) em {lado}, com {dose} + clonidina 75mcg guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "obtur", "nome": "Obturatório", "regiao": "Membro inferior", "lado": "mi", "texto": "- Realizado bloqueio periférico do nervo obturatório em {lado}, com {dose} guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência e à proteção do membro bloqueado.", "bilat": false, "padrao": "D", "dose": {"a": "anestésico local", "c": "___", "v": "___ml"}}, {"id": "pudendo", "nome": "Pudendo", "regiao": "Pelve e períneo", "lado": "a", "texto": "- Realizado bloqueio periférico pudendo {lado}, com {dose} por lado (+ dexmedetomidina 0,5 mcg/kg) guiado por USG, com lateralidade conferida conforme marcação cirúrgica, sem déficit neurológico prévio no território, aspiração negativa e injeção fracionada, sem dor ou parestesia à injeção, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico. Paciente orientado quanto à dormência da região bloqueada.", "bilat": true, "padrao": "B", "dose": {"a": "ropivacaína", "c": "0,5%", "v": "___ml"}}, {"id": "dpnb", "nome": "Peniano (DPNB) + anel, adulto", "regiao": "Pelve e períneo", "lado": "nenhum", "texto": "- Realizado bloqueio do nervo dorsal do pênis bilateral com {dose} de cada lado, associado a botão subcutâneo em anel na base do pênis (___ml), aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "bilat": false, "padrao": "D", "dose": {"a": "bupivacaína", "c": "___%", "v": "5ml"}}, {"id": "dpnbp", "nome": "Peniano (DPNB) + anel, pediátrico", "regiao": "Pelve e períneo", "lado": "nenhum", "texto": "- Realizado bloqueio do nervo dorsal do pênis bilateral com {dose} de cada lado, associado a botão subcutâneo em anel na base do pênis, aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "bilat": false, "padrao": "D", "dose": {"a": "bupivacaína", "c": "0,25%", "v": "0,1ml/kg"}}, {"id": "caudal", "nome": "Caudal pediátrico", "regiao": "Pelve e períneo", "lado": "nenhum", "texto": "- Realizado bloqueio caudal com {dose}, aspiração negativa e injeção fracionada, sem sinais de toxicidade sistêmica, sem intercorrências, procedimento asséptico.", "bilat": false, "padrao": "D", "dose": {"a": "bupivacaína", "c": "0,25%", "v": "0,5ml/kg"}}], "posicoes": [{"id": "ddh_abd", "classe": "ddh", "nome": "DDH, braços abduzidos 90°", "texto": "- Posicionamento em DDH, com mmss abduzidos 90 graus, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada."}, {"id": "ddh_longo", "classe": "ddh", "nome": "DDH, braços ao longo do corpo", "texto": "- Posicionamento em DDH, com mmss ao longo protegidos e neutros, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada."}, {"id": "ddh_cefalo", "classe": "ddh", "nome": "DDH com cefaloaclive 15° (cabeça e pescoço)", "texto": "- Posicionamento em DDH, com ligeiro cefaloaclive de 15 graus para melhor drenagem, com mmss ao longo protegidos, com coxins infragenicular, calcâneos e occipital, proteção de zonas de pressão periodicamente checada."}, {"id": "litotomia", "classe": "litotomia", "nome": "Litotomia, perneiras acolchoadas", "texto": "- Posicionamento em DDH, com mmss abduzidos < 90 graus, com perneira acolchoada e apropriada para mmii e coxim occipital, proteção de zonas de pressão periodicamente checada."}, {"id": "robo", "classe": "litotomia", "nome": "Litotomia com Trendelenburg acentuado (robô)", "texto": "- Posicionamento em DDH, com mmss ao longo protegidos com espuma, com mmii em litotomia (em perneiras acolchoadas) e coxim occipital + proteção lombar, proteção de zonas de pressão periodicamente checada, todos acessos funcionantes, cinta instalada em tórax bem aplicada com suporte para Trendelenburg acentuado."}, {"id": "ventral", "classe": "ventral", "nome": "Decúbito ventral", "texto": "- Posicionamento em ventral, com mmss abduzidos 90 graus ao lado da cabeça, com coxins sob torso bi-ilíaco + tóracico bilateral, mantendo tórax e abdômen livres, joelhos, pés e calcâneos protegidos sem extensão exagerada, travesseiro sob pernas e coxim apropriado em face, proteção de zonas de pressão periodicamente checada, olhos e regiões sensíveis do rosto livres. A cada 2 horas realizada descompressão de face com técnica de aprofundamento do coxim facial."}, {"id": "lat_e", "classe": "lateral", "nome": "Decúbito lateral esquerdo", "texto": "- Posicionamento em DLE, com MSD abduzido e MSE protegido em ângulos < 90o com caixa de ovo em perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares."}, {"id": "lat_d", "classe": "lateral", "nome": "Decúbito lateral direito", "texto": "- Posicionamento em DLD, com MSE abduzido e MSD protegido em ângulos < 90o com caixa de ovo em perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares."}, {"id": "obliquo", "classe": "lateral", "nome": "Oblíquo / DLE", "texto": "- Posicionamento em oblíquo/DLE, com MSE abduzido e MSD protegido em ângulos < 90o com caixa de ovo em suporte perneira, com travesseiro intergenicular, calcâneos e cabeça em protetor específico e protegida, proteção de zonas de pressão periodicamente checadas, coxim axilar sob tórax protegendo sem comprimir vasos axilares."}, {"id": "praia", "classe": "praia", "nome": "Cadeira de praia", "texto": "- Posicionamento em cadeira de praia, com MSD em campo e MSE protegido em ângulo < 90o, com coxins infragenicular, calcâneos e cabeça em protetor específico e protegida, orelhas, olhos e resto da face livres e protegidos, proteção de zonas de pressão periodicamente checadas."}], "protecoes": [{"id": "ulnar", "em": ["ddh", "litotomia", "ventral", "lateral", "praia"], "jaTem": "ulnar|cotovelo", "nome": "Cotovelos / nervo ulnar", "texto": "Cotovelos protegidos, sem pressão sobre o sulco do nervo ulnar."}, {"id": "mmss", "em": ["ddh", "litotomia", "ventral", "lateral", "praia"], "jaTem": "tração", "nome": "Braços sem tração", "texto": "Mmss sem tração, ombros sem hiperabdução, antebraços em posição neutra ou supinação."}, {"id": "cervical", "em": ["ddh", "litotomia", "ventral", "lateral", "praia"], "jaTem": "pescoço|cervical", "nome": "Pescoço neutro", "texto": "Cabeça e pescoço em posição neutra, sem rotação ou flexão extremas."}, {"id": "fibular", "em": ["litotomia", "lateral", "ventral"], "jaTem": "fíbula|poplítea", "nome": "Fíbula / nervo fibular", "texto": "Fossa poplítea e cabeça da fíbula livres de compressão."}, {"id": "genit", "em": ["ventral", "lateral"], "jaTem": "genit|mamas", "nome": "Genitália e mamas livres", "texto": "Genitália e mamas livres de compressão."}, {"id": "face", "em": ["ventral", "lateral", "praia"], "jaTem": "face.{0,40}livres|olhos.{0,40}livres|orelhas", "nome": "Face, olhos e orelhas livres", "texto": "Face, olhos e orelhas livres de compressão, sem apoio sobre o globo ocular."}, {"id": "tempo", "em": ["ddh", "litotomia", "ventral", "lateral", "praia"], "jaTem": "", "nome": "Reavaliação a cada 2 h", "texto": "Zonas de pressão reavaliadas a cada 2 horas."}]}</script>
+<script id="app-js">
+(function () {
+  'use strict';
+  var TITULO = 'Descrições da Ficha';
+  var CHAVE = 'fichas:receitas:v2';  // v3 reaproveita: pos antigo é convertido ao abrir
+  var BRANCO = /_{2,}(?::_{2,})?/g;
+  var dados = JSON.parse(document.getElementById('dados').textContent);
+  var BASE = dados.itens;
+  var BLOQ = dados.bloqueios || [];
+  var POSICOES = dados.posicoes || [];
+  var PROT = dados.protecoes || [];
+  var CHAVE_DOSES = 'fichas:doses:v1';
+  var doses = lerDoses();
+  var COM_AJUSTES = ['Anestesia geral', 'Sedação e raqui', 'Geral + neuroeixo', 'Por cirurgia'];
+  var raiz = document.getElementById('app');
+
+  /* ---------- estado ---------- */
+  var sel = null, busca = '', cat = '', vista = 'lista';
+  var est = novoEstado();
+  var receitas = lerReceitas();
+  function novoEstado() { return { campos: {}, c: {}, bq: [], bqx: {}, inv: {}, pos: { tipo: '', on: [], off: [] }, vazios: [], edit: false, textoEdit: '', salvarAberto: false, msg: '', confirmaRemover: false, regiao: '' }; }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function achar(id) { return BASE.filter(function (i) { return i.id === id; })[0]; }
+  function lerReceitas() {
+    try {
+      var j = JSON.parse(localStorage.getItem(CHAVE) || '[]');
+      return Array.isArray(j) ? j.filter(function (r) { return r && r.base && achar(r.base); }) : [];
+    } catch (e) { return []; }
+  }
+  function lerDoses() { try { var j = JSON.parse(localStorage.getItem(CHAVE_DOSES) || '{}'); return j && typeof j === 'object' ? j : {}; } catch (e) { return {}; } }
+  function gravarDoses() { try { localStorage.setItem(CHAVE_DOSES, JSON.stringify(doses)); return true; } catch (e) { return false; } }
+  function gravarReceitas() { try { localStorage.setItem(CHAVE, JSON.stringify(receitas)); return true; } catch (e) { return false; } }
+  function noEstadoInicial() {
+    return !Object.keys(est.campos).length && !Object.keys(est.c).length && !est.bq.length && !Object.keys(est.bqx).length &&
+      !Object.keys(est.inv).length && !est.pos.tipo && !est.pos.on.length && !est.pos.off.length;
+  }
+
+  /* ---------- utilidades de linha ---------- */
+  function ordenaNum(a, b) { return parseFloat(String(a).replace(',', '.')) - parseFloat(String(b).replace(',', '.')); }
+  function comAtual(ops, atual) { var o = ops.slice(); if (atual && o.indexOf(atual) < 0) { o.push(atual); o.sort(ordenaNum); } return o; }
+  function acha(linhas, re, pulaIdx) {
+    for (var k = 0; k < linhas.length; k++) { if (k !== pulaIdx && linhas[k] !== null && re.test(linhas[k])) return k; }
+    return -1;
+  }
+  function iguais(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function mescla(ini, ov) { return Object.assign({}, ini, ov || {}); }
+  function mudou(ini, ov) { return !!ov && !iguais(mescla(ini, ov), ini); }
+  function juntaE(partes) { return partes.length <= 1 ? partes.join('') : partes.slice(0, -1).join(', ') + ' e ' + partes[partes.length - 1]; }
+
+  /* ---------- via aérea e primeiro acesso (por regex no próprio texto) ---------- */
+  var LINHA_ACESSO = /^- (Venóclise|AVP|Novo AVP)/;
+  function camposVA(it) {
+    var t = it.texto, out = [], m;
+    if ((m = /sonda (simples|aramada) com cuff/.exec(t))) out.push({ id: 'tipo', rot: 'Tubo', forma: 'seg', ops: ['simples', 'aramada'], atual: m[1] });
+    if ((m = /cuff número ([\d,]+)/.exec(t))) {
+      var dlt = /duplo-lúmen/.test(t);
+      var base = dlt ? ['35', '37', '39', '41'] : ['3,0', '3,5', '4,0', '4,5', '5,0', '5,5', '6,0', '6,5', '7,0', '7,5', '8,0', '8,5', '9,0'];
+      out.push({ id: 'num', rot: 'Nº do tubo', forma: 'sel', ops: comAtual(base, m[1]), atual: m[1] });
+    }
+    if ((m = /posicionada a (\d+) cm da/.exec(t))) {
+      var cms = []; for (var c = 12; c <= 30; c++) cms.push(String(c));
+      out.push({ id: 'cm', rot: 'Posição (cm)', forma: 'sel', ops: comAtual(cms, m[1]), atual: m[1] });
+    }
+    if ((m = /Cormack (\d)/.exec(t))) out.push({ id: 'cormack', rot: 'Cormack', forma: 'seg', ops: ['1', '2', '3', '4'], atual: m[1] });
+    var linhas = t.split('\n'), idx = acha(linhas, LINHA_ACESSO);
+    if (idx >= 0) {
+      var g = /\b(\d{2})[gG]\b/.exec(linhas[idx]), s = /\b(MSD|MSE)\b/.exec(linhas[idx]);
+      out.push({ id: 'g', rot: 'Acesso (calibre)', forma: 'seg', ops: ['22', '20', '18', '16'], atual: g ? g[1] : '' });
+      out.push({ id: 'lado', rot: 'Lado', forma: 'seg', ops: ['MSD', 'MSE'], atual: s ? s[1] : '' });
+    }
+    return out;
+  }
+  function aplicarVA(it, v) {
+    var t = it.texto;
+    if (v.cormack) t = t.replace(/Cormack \d/, 'Cormack ' + v.cormack);
+    if (v.tipo) t = t.replace(/sonda (simples|aramada) com cuff/, 'sonda ' + v.tipo + ' com cuff');
+    if (v.num) t = t.replace(/cuff número [\d,]+/, 'cuff número ' + v.num);
+    if (v.cm) t = t.replace(/posicionada a \d+ cm da/, 'posicionada a ' + v.cm + ' cm da');
+    if (v.g || v.lado) {
+      var linhas = t.split('\n'), k = acha(linhas, LINHA_ACESSO);
+      if (k >= 0) {
+        var l = linhas[k];
+        if (/\b\d{2}[gG]\b/.test(l)) {
+          if (v.g) l = l.replace(/\b(\d{2})([gG])\b/, function (x, n, c) { return v.g + c; });
+          if (v.lado) l = l.replace(/\b(MSD|MSE)\b/, v.lado);
+        } else if (v.g) {
+          l = '- Venóclise ' + v.g + 'G' + (v.lado ? ' ' + v.lado : '') + ' punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.';
+        }
+        linhas[k] = l; t = linhas.join('\n');
+      }
+    }
+    return t;
+  }
+
+  /* ---------- componentes de uma linha: ler → gerar ---------- */
+  var OCLUSAO = ['filme plástico', 'micropore', 'Opsite'];
+  var CO = {
+    ocular: {
+      re: /^- Proteção ocular/,
+      ler: function (l) { return { pomada: /pomada/.test(l), gaze: /gaze/.test(l), oclusao: /micropore/.test(l) ? 'micropore' : (/filme/.test(l) ? 'filme plástico' : (/Opsite/i.test(l) ? 'Opsite' : '')) }; },
+      gerar: function (p) {
+        var a = []; if (p.pomada) a.push('pomada ocular'); if (p.gaze) a.push('gaze'); if (p.oclusao) a.push(p.oclusao);
+        return a.length ? '- Proteção ocular bilateral com ' + a.join(' + ') + '.' : null;
+      }
+    },
+    meias: {
+      re: /^- Instalação de meias/,
+      ler: function (l) {
+        var m = /manta t[ée]rmica (?:de )?(superior|inferior|corpo inteiro|underbody)/i.exec(l);
+        var suf = ''; var ponto = l.indexOf('. '); if (ponto >= 0) suf = l.slice(ponto + 1).trim();
+        return { elastica: /el[aá]sticas/.test(l), pneumatica: /pneum[aá]ticas/.test(l), manta: m ? m[1].toLowerCase() : '', _suf: suf };
+      },
+      gerar: function (p) {
+        var a = [];
+        if (p.elastica) a.push('meias elásticas de compressão média');
+        if (p.pneumatica) a.push('meias compressoras pneumáticas');
+        if (p.manta) a.push('manta térmica ' + (p.manta === 'corpo inteiro' ? 'de corpo inteiro' : p.manta));
+        var suf = p._suf ? ' ' + p._suf : '';
+        if (!a.length) return suf ? '-' + suf : null;
+        return '- Instalação de ' + juntaE(a) + '.' + suf;
+      }
+    },
+    destino: {
+      re: /encaminhado para a RPA/,
+      ler: function () { return { d: 'RPA' }; }
+    }
+  };
+
+  /* ---------- acessos e invasões ---------- */
+  var LADO_ART = { D: 'direita', E: 'esquerda' };
+  var CVC_LOCAIS = [
+    ['jD', 'Jugular D', 'Veia Jugular Direita'], ['jE', 'Jugular E', 'Veia Jugular Esquerda'],
+    ['sD', 'Subclávia D', 'Veia Subclávia Direita'], ['sE', 'Subclávia E', 'Veia Subclávia Esquerda'],
+    ['aD', 'Axilar D', 'Veia Axilar Direita'], ['aE', 'Axilar E', 'Veia Axilar Esquerda'],
+    ['fD', 'Femoral D', 'Veia Femoral Direita'], ['fE', 'Femoral E', 'Veia Femoral Esquerda']
+  ];
+  var ART_LOCAIS = [['rD', 'Radial D'], ['rE', 'Radial E'], ['fD', 'Femoral D'], ['fE', 'Femoral E']];
+  function cvcNome(k) { var o = CVC_LOCAIS.filter(function (x) { return x[0] === k; })[0]; return o ? o[2] : ''; }
+  var INV = {
+    avp2: {
+      rot: 'AVP extra',
+      re: /^- (?:Novo )?AVP (\d{2})G(?: em)? (MSD|MSE)/,
+      padrao: { g: '18', lado: 'MSD' },
+      ler: function (l) { var m = this.re.exec(l); return m ? { g: m[1], lado: m[2] } : null; },
+      gerar: function (p) { return '- Novo AVP ' + p.g + 'G em ' + p.lado + ', com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.'; }
+    },
+    cvc: {
+      rot: 'Cateter venoso central',
+      re: /^- Cateter venoso central/,
+      padrao: { local: 'jD', lumen: 'triplo', fix: 'pontos em bailarina' },
+      ler: function (l) {
+        var loc = '';
+        if (/VJID/.test(l)) loc = 'jD';
+        CVC_LOCAIS.forEach(function (o) { if (l.indexOf('Punção de ' + o[2] + ' ') >= 0) loc = o[0]; });
+        return { local: loc || 'jD', lumen: /duplo-?\s?lúmen/.test(l) ? 'duplo' : 'triplo', fix: /3 pontos/.test(l) ? '3 pontos' : 'pontos em bailarina' };
+      },
+      gerar: function (p) {
+        return '- Cateter venoso central: procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção de ' + cvcNome(p.local) +
+          ' com a técnica de Seldinger e passagem de cateter ' + (p.lumen === 'duplo' ? 'duplo' : 'triplo') + ' lúmen 7 Fr sem intercorrências. Checo com ultrassom. Teste de fluxo e refluxo de todas as vias OK. Fixação com ' + p.fix + ' e realização de curativo estéril.';
+      }
+    },
+    art: {
+      rot: 'Artéria (PAi)',
+      re: /^- Cateterização de artéria/,
+      padrao: { local: 'rD' },
+      ler: function (l) {
+        var m = /artéria (radial|femoral) (direita|esquerda)/.exec(l);
+        return { local: m ? (m[1] === 'radial' ? 'r' : 'f') + (m[2] === 'direita' ? 'D' : 'E') : 'rD' };
+      },
+      gerar: function (p) {
+        var rad = p.local.charAt(0) === 'r', lado = LADO_ART[p.local.charAt(1)];
+        return rad
+          ? '- Cateterização de artéria radial ' + lado + ': procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.'
+          : '- Cateterização de artéria femoral ' + lado + ': procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.';
+      }
+    }
+  };
+  var ORDEM_INV = ['avp2', 'cvc', 'art'];
+
+  /* ---------- bloqueios ---------- */
+  function ladoTxt(def, L) {
+    if (L === 'B') return def.lado === 'ms' ? 'MMSS' : (def.lado === 'mi' ? 'MMII' : 'bilateral');
+    if (def.lado === 'ms') return L === 'D' ? 'MSD' : 'MSE';
+    if (def.lado === 'mi') return L === 'D' ? 'MID' : 'MIE';
+    return L === 'D' ? 'à direita' : 'à esquerda';
+  }
+  var ANEST = ['ropivacaína', 'bupivacaína', 'levobupivacaína', 'lidocaína', 'anestésico local'];
+  function doseDe(def, b) { return Object.assign({}, def.dose || {}, doses[def.id] || {}, (b && b.dose) || {}); }
+  function doseTxt(d) { return [d.a, d.c, d.v].filter(Boolean).join(' '); }
+  function textoBloqueio(def, L, b) {
+    return def.texto.replace('{dose}', doseTxt(doseDe(def, b))).replace('{lado}', def.lado === 'nenhum' ? '' : ladoTxt(def, L)).replace(/  +/g, ' ').replace(' ,', ',');
+  }
+  var LINHA_BLOQ = /^- (Realizado bloqueio|Bloqueio) /;
+  function ladoDaLinha(l) {
+    if (/\b(MSD|MID)\b|à direita|\bdireit[oa]\b/.test(l) && !/\b(MSE|MIE)\b|à esquerda/.test(l)) return 'D';
+    if (/\b(MSE|MIE)\b|à esquerda|\besquerd[oa]\b/.test(l) && !/\b(MSD|MID)\b|à direita/.test(l)) return 'E';
+    return '';
+  }
+  function trocaLado(l, para) {
+    var d = para === 'D';
+    return l.replace(/\bMSD\b|\bMSE\b/, d ? 'MSD' : 'MSE').replace(/\bMID\b|\bMIE\b/, d ? 'MID' : 'MIE')
+      .replace(/à (direita|esquerda)/, d ? 'à direita' : 'à esquerda');
+  }
+
+  /* ---------- posição ---------- */
+  function classeLinha(l) {
+    if (/Trendelenburg|litotomia|perneira/i.test(l)) return 'litotomia';
+    if (/ventral/i.test(l)) return 'ventral';
+    if (/DLE|DLD|obl[ií]quo|lateral/.test(l)) return 'lateral';
+    if (/cadeira de praia/i.test(l)) return 'praia';
+    return 'ddh';
+  }
+  function protEstado(x, baseLinha, classe) {
+    var padrao = (x.em || []).indexOf(classe) >= 0 && !(x.jaTem && new RegExp(x.jaTem, 'i').test(baseLinha));
+    var lig = padrao ? est.pos.off.indexOf(x.id) < 0 : est.pos.on.indexOf(x.id) >= 0;
+    return { padrao: padrao, lig: lig };
+  }
+  function posDef(id) { return POSICOES.filter(function (p) { return p.id === id; })[0]; }
+
+  /* ---------- composição do texto ---------- */
+  function compor(it) {
+    if (it.bq) {
+      return est.bq.map(function (b) {
+        var def = BLOQ.filter(function (x) { return x.id === b.id; })[0];
+        return def ? textoBloqueio(def, b.lado, b) : '';
+      }).filter(Boolean).join('\n');
+    }
+    var linhas = aplicarVA(it, est.campos).split('\n');
+    var temAjustes = COM_AJUSTES.indexOf(it.cat) >= 0;
+    // ocular e meias
+    ['ocular', 'meias'].forEach(function (k) {
+      var idx = acha(linhas, CO[k].re);
+      if (idx < 0 || !est.c[k]) return;
+      var ini = CO[k].ler(linhas[idx]);
+      if (!mudou(ini, est.c[k])) return;
+      linhas[idx] = CO[k].gerar(mescla(ini, est.c[k]));
+    });
+    // posição (a escolhida, ou a do texto) + proteções que valem para ela
+    var ip = acha(linhas, /^- Posicionamento/);
+    if (ip >= 0 && temAjustes) {
+      var base = linhas[ip], classe = classeLinha(base);
+      if (est.pos.tipo) { var pd = posDef(est.pos.tipo); if (pd) { base = pd.texto; classe = pd.classe || classeLinha(base); } }
+      var ext = PROT.filter(function (x) { return protEstado(x, base, classe).lig; }).map(function (x) { return x.texto; });
+      linhas[ip] = base + (ext.length ? ' ' + ext.join(' ') : '');
+    }
+    // destino
+    if (est.c.destino && est.c.destino.d && est.c.destino.d !== 'RPA') {
+      var d = est.c.destino.d;
+      for (var k = 0; k < linhas.length; k++) {
+        if (linhas[k] === null) continue;
+        if (d === 'UTI intubado' && /^- Ao término do procedimento, paciente descurarizado/.test(linhas[k])) {
+          linhas[k] = '- Ao término do procedimento, paciente mantido intubado e sedado, transportado à UTI em ventilação mecânica, com monitorização.';
+        } else if (/encaminhado para a RPA/.test(linhas[k])) {
+          linhas[k] = linhas[k].replace('encaminhado para a RPA', 'encaminhado à UTI');
+        }
+      }
+    }
+    // invasões já presentes no texto
+    var proibido = acha(linhas, LINHA_ACESSO); // 1º acesso: tratado nos ajustes de via aérea
+    ORDEM_INV.forEach(function (id) {
+      var def = INV[id], o = est.inv[id];
+      var idx = def.re.test('') ? -1 : -1;
+      idx = acha(linhas, def.re, id === 'avp2' ? proibido : undefined);
+      if (idx >= 0) {
+        if (!o) return;
+        if (o.on === false) { linhas[idx] = null; return; }
+        var ini = def.ler(linhas[idx]);
+        if (ini && mudou(ini, o.p)) linhas[idx] = def.gerar(mescla(ini, o.p));
+      }
+    });
+    // bloqueios já presentes no texto
+    Object.keys(est.bqx).forEach(function (k) {
+      var i = parseInt(k, 10), o = est.bqx[k];
+      if (linhas[i] === undefined || linhas[i] === null) return;
+      if (o.rem) linhas[i] = null;
+      else if (o.lado) linhas[i] = trocaLado(linhas[i], o.lado);
+    });
+    linhas = linhas.filter(function (l) { return l !== null; });
+    function inserir(novas, ancora) {
+      var idx = acha(linhas, ancora);
+      if (idx < 0) { novas.forEach(function (n) { linhas.push(n); }); return; }
+      linhas.splice.apply(linhas, [idx, 0].concat(novas));
+    }
+    // acrescentar bloqueios novos
+    if (temAjustes) {
+      est.bq.forEach(function (b) {
+        var def = BLOQ.filter(function (x) { return x.id === b.id; })[0];
+        if (def) inserir([textoBloqueio(def, b.lado, b)], /^- (Denitrogenação|Posicionamento)/);
+      });
+      ORDEM_INV.forEach(function (id) {
+        var def = INV[id], o = est.inv[id];
+        if (!o || o.on !== true) return;
+        if (acha(linhas, def.re, id === 'avp2' ? acha(linhas, LINHA_ACESSO) : undefined) >= 0) return; // já existe no texto
+        inserir([def.gerar(mescla(def.padrao, o.p))], /^- Posicionamento/);
+      });
+    }
+    return linhas.join('\n');
+  }
+  function preencher(texto) {
+    var i = 0;
+    return texto.replace(BRANCO, function (b) { var v = est.vazios[i++]; return v && v.trim() ? v.trim() : b; });
+  }
+  function textoParaCopiar(it) { return est.edit ? est.textoEdit : preencher(compor(it)); }
+  function faltam(it) {
+    if (est.edit) return (est.textoEdit.match(BRANCO) || []).length;
+    var tot = (compor(it).match(BRANCO) || []).length, ok = 0;
+    for (var i = 0; i < tot; i++) { if (est.vazios[i] && est.vazios[i].trim()) ok++; }
+    return tot - ok;
+  }
+
+  /* ---------- helpers de tela ---------- */
+  function el(tag, attrs, filhos) {
+    var n = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'class') n.className = attrs[k];
+      else if (k === 'text') n.textContent = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] === true) n.setAttribute(k, '');
+      else if (attrs[k] !== false && attrs[k] != null) n.setAttribute(k, attrs[k]);
+    });
+    (filhos || []).forEach(function (f) { if (f) n.appendChild(typeof f === 'string' ? document.createTextNode(f) : f); });
+    return n;
+  }
+  function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function categorias() { var v = []; BASE.forEach(function (i) { if (i.cat && v.indexOf(i.cat) < 0) v.push(i.cat); }); return v; }
+  function itemAtual() { return sel ? achar(sel.id) : null; }
+  function abrir(id, rec) {
+    sel = { id: id, rid: rec ? rec.id : null };
+    est = novoEstado();
+    if (rec) {
+      var e = rec.est || {};
+      ['campos', 'c', 'bq', 'bqx', 'inv', 'pos'].forEach(function (k) { if (e[k] !== undefined) est[k] = clone(e[k]); });
+      if (est.pos.extras) { est.pos.on = est.pos.extras; delete est.pos.extras; }
+      est.pos.on = est.pos.on || []; est.pos.off = est.pos.off || [];
+    }
+    var itb = achar(id);
+    if (itb && itb.bq && !(rec && est.bq.length)) {
+      var db = BLOQ.filter(function (x) { return x.id === itb.bq; })[0];
+      if (db) est.bq = [{ id: db.id, lado: db.lado === 'nenhum' ? 'B' : (db.padrao || 'D') }];
+    }
+    vista = 'detalhe';
+    desenhar(); window.scrollTo(0, 0);
+  }
+  function seg(rot, ops, atual, aoEscolher) {
+    return el('div', { class: 'aj' }, [rot ? el('span', { class: 'r', text: rot }) : null,
+      el('div', { class: 'seg', role: 'group', 'aria-label': rot || 'opções' }, ops.map(function (o) {
+        return el('button', { type: 'button', text: o.r, 'aria-pressed': String(atual === o.v), onclick: function () { aoEscolher(o.v); } });
+      }))]);
+  }
+  function chip(rot, ligado, aoClicar) { return el('button', { class: 'chip', type: 'button', text: rot, 'aria-pressed': String(!!ligado), onclick: aoClicar }); }
+  function seletor(rot, ops, atual, aoMudar, mudouFlag) {
+    var s = el('select', { 'aria-label': rot, 'data-mudou': mudouFlag ? '1' : '0', onchange: function (e) { aoMudar(e.target.value); } },
+      ops.map(function (o) { var op = el('option', { value: o.v, text: o.r }); if (o.v === atual) op.selected = true; return op; }));
+    return el('div', { class: 'aj' }, [rot ? el('span', { class: 'r', text: rot }) : null, s]);
+  }
+  function atualizarFaltam(it) {
+    var n = document.getElementById('faltam'); if (!n) return;
+    var f = faltam(it);
+    n.textContent = f > 0 ? f + (f === 1 ? ' campo em branco' : ' campos em branco') : '';
+  }
+  function setCampoVA(def, v) {
+    if (v === '' || v === def.atual || est.campos[def.id] === v) delete est.campos[def.id]; else est.campos[def.id] = v;
+    desenhar();
+  }
+  function setC(k, patch, ini) {
+    var ov = Object.assign({}, est.c[k] || {}, patch);
+    if (!mudou(ini, ov)) delete est.c[k]; else est.c[k] = ov;
+    desenhar();
+  }
+
+  /* ---------- lista ---------- */
+  function painelLista() {
+    var q = norm(busca);
+    function bate(titulo, texto, c) { return (!cat || c === cat) && (!q || norm(titulo + ' ' + texto + ' ' + c).indexOf(q) >= 0); }
+    var favs = cat ? [] : receitas.filter(function (r) { var b = achar(r.base); return !q || norm(r.nome + ' ' + b.titulo).indexOf(q) >= 0; });
+    var ordem = categorias();
+    var lista = BASE.map(function (i, n) { return { i: i, n: n }; })
+      .filter(function (x) { return bate(x.i.titulo, x.i.texto, x.i.cat); })
+      .sort(function (a, b) { return (ordem.indexOf(a.i.cat) - ordem.indexOf(b.i.cat)) || (a.n - b.n); })
+      .map(function (x) { return x.i; });
+    var linhas = [];
+    if (favs.length) {
+      linhas.push(el('li', { class: 'grupo', text: 'Minhas receitas' }));
+      favs.forEach(function (r) {
+        var b = achar(r.base);
+        linhas.push(el('li', {}, [el('button', { class: 'item', type: 'button', 'aria-current': String(!!sel && sel.rid === r.id), onclick: function () { abrir(b.id, r); } },
+          [el('span', { class: 't', text: r.nome }), el('span', { class: 'c', text: 'base: ' + b.titulo })])]));
+      });
+    }
+    var ultimo = null, ultimoSub = null;
+    lista.forEach(function (i) {
+      if (i.cat !== ultimo) { ultimo = i.cat; ultimoSub = null; linhas.push(el('li', { class: 'grupo', text: i.cat })); }
+      if (i.sub && i.sub !== ultimoSub) { ultimoSub = i.sub; linhas.push(el('li', { class: 'subgrupo', text: i.sub })); }
+      linhas.push(el('li', {}, [el('button', { class: 'item', type: 'button', 'aria-current': String(!!sel && !sel.rid && sel.id === i.id), onclick: function () { abrir(i.id, null); } },
+        [el('span', { class: 't', text: i.titulo })])]));
+    });
+    var cats = categorias();
+    var chips = el('div', { class: 'chips', role: 'group', 'aria-label': 'Filtrar por grupo' },
+      [el('button', { class: 'chip', type: 'button', 'aria-pressed': String(!cat), text: 'Todos', onclick: function () { cat = ''; desenhar(); } })]
+        .concat(cats.map(function (c) { return el('button', { class: 'chip', type: 'button', 'aria-pressed': String(cat === c), text: c, onclick: function () { cat = (cat === c ? '' : c); desenhar(); } }); })));
+    var busc = el('input', { class: 'busca', id: 'busca', type: 'search', placeholder: 'Buscar título ou texto', 'aria-label': 'Buscar', value: busca,
+      oninput: function (e) { busca = e.target.value; var pos = e.target.selectionStart; desenhar(); var n = document.getElementById('busca'); n.focus(); n.setSelectionRange(pos, pos); } });
+    return el('section', { class: 'lista', 'aria-label': 'Lista de descrições' }, [
+      el('div', { class: 'topo' }, [el('h1', { text: TITULO }), el('span', { class: 'contagem', text: BASE.length + ' textos' })]),
+      el('p', { class: 'usoaviso', text: 'Modelos de texto para o registro anestésico. Doses e condutas são exemplos e podem não se aplicar ao seu paciente ou serviço: confira sempre e adapte. Não substitui o julgamento clínico.' }),
+      busc, chips,
+      linhas.length ? el('ul', { class: 'itens' }, linhas) : el('p', { class: 'vazio', text: 'Nada encontrado para essa busca.' })
+    ]);
+  }
+
+  /* ---------- painéis de ajuste ---------- */
+  function controleVA(def) {
+    var atual = est.campos[def.id] !== undefined ? est.campos[def.id] : def.atual;
+    var mud = est.campos[def.id] !== undefined;
+    if (def.forma === 'seg') {
+      return seg(def.rot, def.ops.map(function (o) { return { v: o, r: def.id === 'g' ? o + 'G' : o }; }), atual,
+        function (v) { setCampoVA(def, atual === v && mud ? '' : v); });
+    }
+    return seletor(def.rot, def.ops.map(function (o) { return { v: o, r: o }; }), atual, function (v) { setCampoVA(def, v); }, mud);
+  }
+
+  function painelViaAerea(it) {
+    var defs = camposVA(it);
+    if (!defs.length) return null;
+    return el('details', { class: 'painel' }, [el('summary', { text: 'Via aérea e primeiro acesso' }),
+      el('div', { class: 'cont' }, [el('div', { class: 'ajustes' }, defs.map(controleVA))])]);
+  }
+
+  function painelProtecao(it) {
+    var linhas = aplicarVA(it, est.campos).split('\n');
+    var blocos = [];
+    // olhos
+    var io = acha(linhas, CO.ocular.re);
+    if (io >= 0) {
+      var ini = CO.ocular.ler(linhas[io]), p = mescla(ini, est.c.ocular);
+      blocos.push(el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Proteção ocular' }),
+        el('div', { class: 'chips' }, [
+          chip('Pomada', p.pomada, function () { setC('ocular', { pomada: !p.pomada }, ini); }),
+          chip('Gaze', p.gaze, function () { setC('ocular', { gaze: !p.gaze }, ini); })
+        ].concat(OCLUSAO.map(function (o) { return chip(o, p.oclusao === o, function () { setC('ocular', { oclusao: p.oclusao === o ? '' : o }, ini); }); })))]));
+    }
+    // meias e manta
+    var im = acha(linhas, CO.meias.re);
+    if (im >= 0) {
+      var ini2 = CO.meias.ler(linhas[im]), q = mescla(ini2, est.c.meias);
+      blocos.push(el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Meias e manta térmica' }),
+        el('div', { class: 'chips' }, [
+          chip('Meias elásticas', q.elastica, function () { setC('meias', { elastica: !q.elastica }, ini2); }),
+          chip('Meias pneumáticas', q.pneumatica, function () { setC('meias', { pneumatica: !q.pneumatica }, ini2); })
+        ].concat(['superior', 'inferior', 'corpo inteiro', 'underbody'].map(function (m) {
+          return chip('Manta ' + m, q.manta === m, function () { setC('meias', { manta: q.manta === m ? '' : m }, ini2); });
+        })))]));
+    }
+    // posição
+    var ip = acha(linhas, /^- Posicionamento/);
+    if (ip >= 0 && POSICOES.length) {
+      var ops = [{ v: '', r: 'Padrão deste texto' }].concat(POSICOES.map(function (x) { return { v: x.id, r: x.nome }; }));
+      blocos.push(seletor('Posicionamento', ops, est.pos.tipo, function (v) { est.pos.tipo = v; desenhar(); }, !!est.pos.tipo));
+      if (PROT.length && COM_AJUSTES.indexOf(it.cat) >= 0) {
+        var baseL = linhas[ip], cls = classeLinha(baseL);
+        if (est.pos.tipo) { var pd2 = posDef(est.pos.tipo); if (pd2) { baseL = pd2.texto; cls = pd2.classe || classeLinha(baseL); } }
+        blocos.push(el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Proteções descritas na posição (ligadas as que cabem)' }),
+          el('div', { class: 'chips' }, PROT.map(function (x) {
+            var e = protEstado(x, baseL, cls);
+            return chip(x.nome, e.lig, function () {
+              var on = est.pos.on, off = est.pos.off, i;
+              if (e.lig) { if (e.padrao) off.push(x.id); else { i = on.indexOf(x.id); if (i >= 0) on.splice(i, 1); } }
+              else { if (e.padrao) { i = off.indexOf(x.id); if (i >= 0) off.splice(i, 1); } else on.push(x.id); }
+              desenhar();
+            });
+          }))]));
+      }
+    }
+    // destino
+    if (linhas.some(function (l) { return CO.destino.re.test(l); })) {
+      var dAtual = (est.c.destino && est.c.destino.d) || 'RPA';
+      var temExt = linhas.some(function (l) { return /^- Ao término do procedimento, paciente descurarizado/.test(l); });
+      var opsD = [{ v: 'RPA', r: 'RPA' }, { v: 'UTI', r: 'UTI' }].concat(temExt ? [{ v: 'UTI intubado', r: 'UTI intubado' }] : []);
+      blocos.push(seg('Destino', opsD, dAtual, function (v) { if (v === 'RPA') delete est.c.destino; else est.c.destino = { d: v }; desenhar(); }));
+    }
+    if (!blocos.length) return null;
+    return el('details', { class: 'painel' }, [el('summary', { text: 'Proteção, posição e destino' }),
+      el('div', { class: 'cont' }, [el('div', { class: 'ajustes' }, blocos)])]);
+  }
+
+  function cartaoInv(id, linhas, acessoIdx) {
+    var def = INV[id], idx = acha(linhas, def.re, id === 'avp2' ? acessoIdx : undefined);
+    var existe = idx >= 0, ini = existe ? def.ler(linhas[idx]) : null;
+    var o = est.inv[id];
+    var ligado = existe ? !(o && o.on === false) : !!(o && o.on === true);
+    var p = mescla(existe ? ini : def.padrao, o && o.p);
+    function guardar(patch) {
+      var novo = { on: o && o.on !== undefined ? o.on : (existe ? true : true), p: Object.assign({}, (o && o.p) || {}, patch) };
+      if (existe) { if (!mudou(ini, novo.p)) delete novo.p, novo.p = {}; }
+      est.inv[id] = novo; limpaInv(id, existe, ini); desenhar();
+    }
+    function alternar() {
+      if (existe) { est.inv[id] = ligado ? { on: false, p: {} } : { on: true, p: (o && o.p) || {} }; limpaInv(id, existe, ini); }
+      else { est.inv[id] = ligado ? { on: false, p: {} } : { on: true, p: (o && o.p) || {} }; if (ligado) delete est.inv[id]; }
+      desenhar();
+    }
+    var corpo = [];
+    if (ligado) {
+      if (id === 'avp2') {
+        corpo.push(seg('', ['22', '20', '18', '16'].map(function (g) { return { v: g, r: g + 'G' }; }), p.g, function (v) { guardar({ g: v }); }));
+        corpo.push(seg('', [{ v: 'MSD', r: 'MSD' }, { v: 'MSE', r: 'MSE' }], p.lado, function (v) { guardar({ lado: v }); }));
+      } else if (id === 'cvc') {
+        corpo.push(seletor('', CVC_LOCAIS.map(function (x) { return { v: x[0], r: x[1] }; }), p.local, function (v) { guardar({ local: v }); }, false));
+        corpo.push(seg('', [{ v: 'duplo', r: 'Duplo lúmen' }, { v: 'triplo', r: 'Triplo lúmen' }], p.lumen, function (v) { guardar({ lumen: v }); }));
+        corpo.push(seg('', [{ v: 'pontos em bailarina', r: 'Bailarina' }, { v: '3 pontos', r: '3 pontos' }], p.fix, function (v) { guardar({ fix: v }); }));
+      } else {
+        corpo.push(seletor('', ART_LOCAIS.map(function (x) { return { v: x[0], r: x[1] }; }), p.local, function (v) { guardar({ local: v }); }, false));
+      }
+    }
+    return el('div', { class: 'cartao' }, [
+      chip(def.rot, ligado, alternar)
+    ].concat(corpo));
+  }
+  function limpaInv(id, existe, ini) {
+    var o = est.inv[id]; if (!o) return;
+    if (existe && o.on !== false && !mudou(ini, o.p)) delete est.inv[id];
+    else if (!existe && o.on !== true) delete est.inv[id];
+  }
+
+  function painelInvasoes(it, ids) {
+    var linhas = aplicarVA(it, est.campos).split('\n'), ia = acha(linhas, LINHA_ACESSO);
+    ids = ids || ORDEM_INV;
+    return el('details', { class: 'painel' }, [el('summary', { text: 'Acessos e invasões' }),
+      el('div', { class: 'cont' }, [el('div', { class: 'cartoes' }, ids.map(function (id) { return cartaoInv(id, linhas, ia); })),
+        el('span', { class: 'nota', text: 'Cada um já vem com o padrão (AVP 18G MSD, jugular D, radial D). Marque e troque o que for diferente.' })])]);
+  }
+
+  function ehBranco(v) { return /^_/.test(v || ''); }
+  function normaliza(chave, v) {
+    if (chave === 'c' && /^[\d,.]+$/.test(v)) return v.replace('.', ',') + '%';
+    if (chave === 'v' && /^[\d,.]+$/.test(v)) return v.replace('.', ',') + 'ml';
+    return v;
+  }
+  function atualizarTexto(it) {
+    var velho = document.getElementById('texto-atual');
+    if (velho && !est.edit) { velho.replaceWith(textoComCampos(compor(it))); atualizarFaltam(it); }
+  }
+  function controlesDose(it, def, b) {
+    var d = doseDe(def, b), padrao = def.dose || {};
+    var salva = doses[def.id];
+    var igualSalva = salva && ['a', 'c', 'v'].every(function (k) { return (salva[k] || '') === (d[k] || ''); });
+    function campo(chave, rot, lista) {
+      return el('label', { class: 'aj' }, [el('span', { class: 'r', text: rot }),
+        el('input', { type: 'text', class: 'dose', value: ehBranco(d[chave]) ? '' : (d[chave] || ''), placeholder: padrao[chave] || '', size: 8, list: lista, 'aria-label': rot + ' do ' + def.nome,
+          oninput: function (e) {
+            var v = e.target.value.trim(); b.dose = b.dose || {};
+            if (!v) delete b.dose[chave]; else b.dose[chave] = normaliza(chave, v);
+            atualizarTexto(it);
+          } })]);
+    }
+    var sa = el('select', { 'aria-label': 'Anestésico do ' + def.nome, onchange: function (e) { b.dose = b.dose || {}; b.dose.a = e.target.value; desenhar(); } },
+      ANEST.map(function (o) { var op = el('option', { value: o, text: o }); if (o === d.a) op.selected = true; return op; }));
+    var fil = [el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Anestésico' }), sa]), campo('c', 'Concentração', 'lista-conc'), campo('v', 'Volume', null)];
+    fil.push(el('button', { class: 'btn', type: 'button', text: 'Salvar dose', onclick: function () {
+      var dd = doseDe(def, b);
+      doses[def.id] = { a: dd.a, c: dd.c, v: dd.v };
+      est.msg = gravarDoses() ? 'Dose do ' + def.nome + ' salva neste aparelho. Ela vira o padrão deste bloqueio.' : 'Este navegador não deixa salvar a dose.';
+      delete b.dose; desenhar();
+    } }));
+    if (salva) fil.push(el('button', { class: 'limpar', type: 'button', text: 'Esquecer dose salva (' + [salva.c, salva.v].filter(Boolean).join(' ') + ')', onclick: function () { delete doses[def.id]; delete b.dose; gravarDoses(); est.msg = ''; desenhar(); } }));
+    return fil;
+  }
+
+  function painelBloqueios(it, soCartoes) {
+    var linhas = aplicarVA(it, est.campos).split('\n');
+    var presentes = [];
+    linhas.forEach(function (l, i) { if (LINHA_BLOQ.test(l)) presentes.push(i); });
+    var regioes = []; BLOQ.forEach(function (b) { if (regioes.indexOf(b.regiao) < 0) regioes.push(b.regiao); });
+    var reg = est.regiao && regioes.indexOf(est.regiao) >= 0 ? est.regiao : '';
+    var cartoes = [];
+    presentes.forEach(function (i) {
+      var o = est.bqx[i], removido = o && o.rem, lado = (o && o.lado) || ladoDaLinha(linhas[i]);
+      var nome = linhas[i].replace(/^- /, '').replace(/^(Realizado )?[Bb]loqueio( periférico)? /, '').split(/[,(]| com | em | à /)[0];
+      var filhos = [el('span', { class: 'nome', text: 'No texto: ' + nome + (removido ? ' (removido)' : '') })];
+      if (!removido && lado) filhos.push(seg('', [{ v: 'D', r: 'Direito' }, { v: 'E', r: 'Esquerdo' }], lado, function (v) {
+        est.bqx[i] = Object.assign({}, est.bqx[i], { lado: v === ladoDaLinha(linhas[i]) ? undefined : v }); if (!est.bqx[i].lado && !est.bqx[i].rem) delete est.bqx[i]; desenhar();
+      }));
+      filhos.push(el('button', { class: 'tira', type: 'button', text: removido ? 'Voltar' : 'Remover', onclick: function () {
+        if (removido) delete est.bqx[i]; else est.bqx[i] = { rem: true }; desenhar();
+      } }));
+      cartoes.push(el('div', { class: 'cartao' }, filhos));
+    });
+    est.bq.forEach(function (b, n) {
+      var def = BLOQ.filter(function (x) { return x.id === b.id; })[0]; if (!def) return;
+      var opsL = def.lado === 'nenhum' ? null : [{ v: 'D', r: 'Direito' }, { v: 'E', r: 'Esquerdo' }].concat(def.bilat ? [{ v: 'B', r: 'Bilateral' }] : []);
+      var filhos = [el('span', { class: 'nome', text: def.nome })];
+      if (opsL) filhos.push(seg('', opsL, b.lado, function (v) { b.lado = v; desenhar(); }));
+      if (!it.bq) filhos.push(el('button', { class: 'tira', type: 'button', text: 'Tirar', onclick: function () { est.bq.splice(n, 1); desenhar(); } }));
+      cartoes.push(el('div', { class: 'cartao' }, filhos.concat(controlesDose(it, def, b))));
+    });
+    var seletorRegiao = el('div', { class: 'regioes', role: 'group', 'aria-label': 'Região do bloqueio' },
+      regioes.map(function (r) { return chip(r, reg === r, function () { est.regiao = reg === r ? '' : r; desenhar(); }); }));
+    var opcoes = reg ? el('div', { class: 'chips' }, BLOQ.filter(function (b) { return b.regiao === reg; }).map(function (b) {
+      return chip('+ ' + b.nome, false, function () { est.bq.push({ id: b.id, lado: b.lado === 'nenhum' ? 'B' : (b.padrao || 'D') }); desenhar(); });
+    })) : null;
+    var n = est.bq.length;
+    if (soCartoes && !cartoes.length) return null;
+    return el('details', { class: 'painel', open: soCartoes ? true : undefined }, [el('summary', { text: 'Bloqueios' + (n ? ' (' + n + ' acrescentado' + (n > 1 ? 's' : '') + ')' : '') }),
+      el('div', { class: 'cont' }, [
+        cartoes.length ? el('div', { class: 'cartoes' }, cartoes) : null,
+        soCartoes ? null : el('span', { class: 'sub', text: 'Acrescentar bloqueio' }), soCartoes ? null : seletorRegiao, soCartoes ? null : opcoes
+      ])]);
+  }
+
+  function ajustesDe(it) {
+    var pc = COM_AJUSTES.indexOf(it.cat) >= 0;
+    var paineis = [painelViaAerea(it)];
+    if (pc) paineis.push(painelBloqueios(it, false), painelInvasoes(it));
+    else if (it.cat === 'Bloqueios') paineis.push(painelBloqueios(it, true));
+    else if (it.cat === 'Blocos avulsos') paineis.push(painelInvasoes(it, ['cvc', 'art']));
+    if (it.cat !== 'Bloqueios' && it.cat !== 'Blocos avulsos') paineis.push(painelProtecao(it));
+    paineis = paineis.filter(Boolean);
+    if (!paineis.length) return null;
+    var filhos = paineis;
+    if (!noEstadoInicial()) filhos = filhos.concat([el('button', { class: 'limpar', type: 'button', text: 'Voltar tudo ao padrão', onclick: function () { var v = est.vazios; est = novoEstado(); est.vazios = v; desenhar(); } })]);
+    return el('div', { class: 'cartoes', 'aria-label': 'Ajustes' }, filhos);
+  }
+
+  /* ---------- detalhe ---------- */
+  function copiar(texto, alvo, btn) {
+    var antes = btn.textContent;
+    function fim(t) { btn.textContent = t; setTimeout(function () { btn.textContent = antes; }, 2200); }
+    var pronto = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(texto) : Promise.reject();
+    pronto.then(function () { fim('Copiado'); }, function () {
+      if (alvo && alvo.select) { alvo.select(); }
+      else if (alvo) { var r = document.createRange(); r.selectNodeContents(alvo); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+      fim('Selecionado: Ctrl+C');
+    });
+  }
+  function inputBranco(i, token) {
+    var v = est.vazios[i] || '';
+    return el('input', { class: 'brancos', type: 'text', placeholder: token, value: v, 'aria-label': 'Campo para preencher ' + (i + 1), size: Math.max(3, v.length + 1, Math.min(token.length, 6)),
+      oninput: function (e) { est.vazios[i] = e.target.value; e.target.size = Math.max(3, e.target.value.length + 1); atualizarFaltam(itemAtual()); } });
+  }
+  function textoComCampos(texto) {
+    var partes = texto.split(BRANCO), brancos = texto.match(BRANCO) || [];
+    var cont = el('div', { class: 'texto', id: 'texto-atual' });
+    partes.forEach(function (p, i) { cont.appendChild(document.createTextNode(p)); if (i < brancos.length) cont.appendChild(inputBranco(i, brancos[i])); });
+    return cont;
+  }
+  function formReceita(it) {
+    var nome = el('input', { id: 'rec-nome', type: 'text', value: it.titulo, 'aria-label': 'Nome da receita' });
+    var salvar = el('button', { class: 'btn prim', type: 'button', text: 'Salvar', onclick: function () {
+      var n = nome.value.trim() || it.titulo;
+      receitas.push({ id: 'r' + Date.now().toString(36), nome: n, base: it.id, est: clone({ campos: est.campos, c: est.c, bq: est.bq, bqx: est.bqx, inv: est.inv, pos: est.pos }) });
+      est.msg = gravarReceitas() ? 'Receita salva neste aparelho.' : 'Este navegador não deixa salvar. A receita vale só até fechar a página.';
+      est.salvarAberto = false; desenhar();
+    } });
+    return el('div', { class: 'form' }, [nome, salvar, el('button', { class: 'btn', type: 'button', text: 'Cancelar', onclick: function () { est.salvarAberto = false; desenhar(); } })]);
+  }
+  function painelDetalhe(it) {
+    var rec = sel.rid ? receitas.filter(function (r) { return r.id === sel.rid; })[0] : null;
+    var alvo, corpo;
+    if (est.edit) {
+      alvo = el('textarea', { class: 'texto', id: 'texto-edit', 'aria-label': 'Texto para editar' });
+      alvo.value = est.textoEdit;
+      alvo.addEventListener('input', function (e) { est.textoEdit = e.target.value; atualizarFaltam(it); });
+      corpo = alvo;
+    } else { corpo = textoComCampos(compor(it)); }
+    var bCopiar = el('button', { class: 'btn prim', type: 'button', text: 'Copiar' });
+    bCopiar.addEventListener('click', function () { copiar(textoParaCopiar(it), est.edit ? corpo : document.getElementById('texto-atual'), bCopiar); });
+    var acoes = [bCopiar,
+      est.edit
+        ? el('button', { class: 'btn', type: 'button', text: 'Voltar às escolhas (descarta a edição)', onclick: function () { est.edit = false; desenhar(); } })
+        : el('button', { class: 'btn', type: 'button', text: 'Editar texto', onclick: function () { est.textoEdit = preencher(compor(it)); est.edit = true; desenhar(); } }),
+      rec
+        ? el('button', { class: 'btn perigo', type: 'button', text: est.confirmaRemover ? 'Confirmar: remover receita' : 'Remover receita', onclick: function () {
+            if (!est.confirmaRemover) { est.confirmaRemover = true; desenhar(); return; }
+            receitas = receitas.filter(function (r) { return r.id !== rec.id; }); gravarReceitas();
+            sel = null; vista = 'lista'; est = novoEstado(); desenhar();
+          } })
+        : (est.edit ? null : el('button', { class: 'btn', type: 'button', text: 'Salvar como receita', onclick: function () { est.salvarAberto = !est.salvarAberto; desenhar(); } })),
+      el('span', { class: 'faltam', id: 'faltam', role: 'status' })
+    ];
+    var nodos = [
+      el('button', { class: 'voltar', type: 'button', text: '< Voltar à lista', onclick: function () { vista = 'lista'; desenhar(); } }),
+      el('div', { class: 'cab' }, [el('h2', { text: rec ? rec.nome : it.titulo }),
+        el('span', { class: 'meta', text: rec ? 'Receita salva neste aparelho · base: ' + it.titulo : it.cat })]),
+      el('div', { class: 'acoes' }, acoes),
+      est.msg ? el('div', { class: 'nota', role: 'status', text: est.msg }) : null,
+      est.salvarAberto ? formReceita(it) : null,
+      est.edit ? el('div', { class: 'aviso', text: 'Edição livre: o que você escrever aqui é o que será copiado. Para mexer nas escolhas, volte a elas.' }) : ajustesDe(it),
+      corpo
+    ];
+    var sec = el('section', { class: 'detalhe', 'aria-label': 'Descrição' }, nodos);
+    setTimeout(function () { atualizarFaltam(it); }, 0);
+    return sec;
+  }
+  function painelInicial() {
+    return el('section', { class: 'detalhe', 'aria-label': 'Descrição' }, [
+      el('div', { class: 'cab' }, [el('h2', { text: 'Escolha uma descrição' }),
+        el('span', { class: 'meta', text: 'Abra um título e toque em Copiar. Se precisar, ajuste tubo, Cormack, acessos, bloqueios, proteção ou posição antes.' })])
+    ]);
+  }
+  function desenhar() {
+    var it = itemAtual();
+    var abertos = [];
+    [].forEach.call(document.querySelectorAll('details.painel'), function (d) { abertos.push(d.open); });
+    var detalhe = it ? painelDetalhe(it) : painelInicial();
+    var rod = el('div', { class: 'rodape' }, [el('span', { text: 'Página sem dado de paciente: nada é enviado, tudo roda no seu navegador. Receitas e doses salvas ficam só neste navegador. Não digite dados que identifiquem pacientes.' })]);
+    var dl = el('datalist', { id: 'lista-conc' }, ['0,2%', '0,25%', '0,375%', '0,5%', '0,75%'].map(function (c) { return el('option', { value: c }); }));
+    raiz.replaceChildren(el('div', { class: 'app', 'data-vista': vista }, [painelLista(), detalhe]), rod, dl);
+    [].forEach.call(document.querySelectorAll('details.painel'), function (d, i) { if (abertos[i]) d.open = true; });
+  }
+
+  desenhar();
+})();
+</script>
+</body>
+</html>
