@@ -79,6 +79,7 @@ textarea.texto { width: 100%; min-height: 55vh; resize: vertical; font-family: i
 /* painéis de ajuste: um bloco por assunto, recolhível */
 details.painel { border: 1px solid var(--linha); border-radius: 6px; }
 .painel-fixo { border: 1px solid var(--linha); border-radius: 6px; padding: 9px 12px 12px; }
+.titulo-fixo { display: block; font-weight: 700; margin-bottom: 8px; }
 .linha-nivel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .acoes.fim { margin-top: 14px; }
 details.painel > summary { cursor: pointer; font-weight: 700; padding: 9px 12px; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -224,6 +225,11 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       var g = /\b(\d{2})[gG]\b/.exec(linhas[idx]), s = /\b(MSD|MSE)\b/.exec(linhas[idx]);
       out.push({ id: 'g', rot: 'Acesso (calibre)', forma: 'seg', ops: ['22', '20', '18', '16'], atual: g ? g[1] : '' });
       out.push({ id: 'lado', rot: 'Lado', forma: 'seg', ops: ['MSD', 'MSE'], atual: s ? s[1] : '' });
+      var pun = /punção (?:única|em (\d+) tentativas)/.exec(linhas[idx]);
+      if (pun || est.campos.g) { // só quando o acesso foi puncionado aqui (não em "venóclise funcionante")
+        out.push({ id: 'tent', rot: 'Punção venosa', forma: 'seg', ops: ['única', '2', '3', '4'], atual: pun && pun[1] ? pun[1] : 'única' });
+        out.push({ id: 'usg', rot: 'USG no acesso', forma: 'seg', ops: ['Sem', 'Com'], atual: /ultrassom/.test(linhas[idx]) ? 'Com' : 'Sem' });
+      }
     }
     return out;
   }
@@ -244,6 +250,15 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
           l = '- Venóclise ' + v.g + 'G' + (v.lado ? ' ' + v.lado : '') + ' punção única com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.';
         }
         linhas[k] = l; t = linhas.join('\n');
+      }
+    }
+    if (v.tent || v.usg) {
+      var ls = t.split('\n'), j = acha(ls, LINHA_ACESSO), RP = /punção (?:única|em \d+ tentativas)(?: guiada por ultrassom)?/;
+      if (j >= 0 && RP.test(ls[j])) {
+        var tent = v.tent || ((/em (\d+) tentativas/.exec(ls[j]) || [])[1] || 'única');
+        var usg = (v.usg || (/ultrassom/.test(ls[j]) ? 'Com' : 'Sem')) === 'Com';
+        ls[j] = ls[j].replace(RP, 'punção ' + (tent === 'única' ? 'única' : 'em ' + tent + ' tentativas') + (usg ? ' guiada por ultrassom' : ''));
+        t = ls.join('\n');
       }
     }
     return aplicarIOT(t, v);
@@ -322,6 +337,86 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
 
   /* ---------- acessos e invasões ---------- */
   var LADO_ART = { D: 'direita', E: 'esquerda' };
+  CO.raqui = {
+    re: /^- Raquianestesia/,
+    ler: function (l) {
+      var e = /\b([LT]\d{1,2}-[LS]\d)\b/.exec(l), c = /agulha (?:W|Q|Whitacre |Quincke )(\d{2})/.exec(l), tl = /agulha [^,]+,(.*)$/.exec(l);
+      return {
+        pos: /decúbito lateral direito/.test(l) ? 'DLD' : (/decúbito lateral esquerdo/.test(l) ? 'DLE' : 'sentado'),
+        esp: e ? e[1] : 'L4-L5', ag: /agulha (?:Q|Quincke)/.test(l) ? 'Quincke' : 'Whitacre', cal: c ? c[1] : '27',
+        tent: /múltiplas/.test(l) ? 'múltiplas' : 'única', via: /paramediana/.test(l) ? 'paramediana' : 'mediana',
+        tail: tl ? tl[1] : ' sem parestesia ou dor, refluxo de líquor claro e normotenso, injeção lenta.'
+      };
+    },
+    gerar: function (p) {
+      return '- Raquianestesia com paciente ' + (p.pos === 'sentado' ? 'sentado' : 'em decúbito lateral ' + (p.pos === 'DLD' ? 'direito' : 'esquerdo')) +
+        ', assepsia/antissepsia, botão anestésico, punção ' + (p.tent === 'única' ? 'única' : 'em múltiplas tentativas') + ' por via ' + p.via +
+        ' em ' + p.esp + ', agulha ' + p.ag + ' ' + p.cal + 'G,' + p.tail;
+    }
+  };
+  // monitorização: [id, rótulo do botão, texto]
+  var MON = [
+    ['ecg', 'Cardioscopia 5 deriv.', 'cardioscopia de 5 derivações'], ['spo2', 'Oximetria', 'oximetria de pulso'],
+    ['pani', 'PANI', 'pressão arterial não invasiva'], ['etco2', 'Capnografia', 'capnografia'],
+    ['gases', 'Analisador de gases', 'analisador de gases (O2 e agentes anestésicos)'], ['bis', 'BIS', 'BIS'],
+    ['tof', 'TOF', 'monitorização neuromuscular (TOF)'], ['tesof', 'Temp. esofágica', 'temperatura esofágica'],
+    ['tves', 'Temp. vesical', 'temperatura vesical'], ['tcut', 'Temp. cutânea', 'temperatura cutânea'],
+    ['pai', 'PAi', 'pressão arterial invasiva'], ['vpp', 'VPP', 'variação de pressão de pulso (VPP)'],
+    ['dc', 'Débito cardíaco', 'débito cardíaco minimamente invasivo'], ['pvc', 'PVC', 'pressão venosa central'],
+    ['pap', 'Swan-Ganz', 'cateter de artéria pulmonar'], ['ete', 'ETE', 'ecocardiograma transesofágico'],
+    ['diurese', 'Diurese', 'débito urinário por sonda vesical'], ['nirs', 'NIRS', 'oximetria cerebral (NIRS)'],
+    ['eeg', 'EEG', 'eletroencefalograma'], ['pev', 'Potenciais evocados', 'neuromonitorização (potenciais evocados)'],
+    ['pic', 'PIC', 'pressão intracraniana'], ['noci', 'Nocicepção (ANI/NOL)', 'monitor de nocicepção (ANI/NOL)'],
+    ['sphb', 'SpHb', 'hemoglobina contínua (SpHb)'], ['glic', 'Glicemia capilar', 'glicemia capilar seriada'],
+    ['gaso', 'Gasometria', 'gasometria arterial seriada'], ['visco', 'ROTEM/TEG', 'teste viscoelástico (ROTEM/TEG)']
+  ];
+  CO.monit = {
+    re: /^- Monitorização\b/,
+    ler: function (l) {
+      var m = /^- Monitorização([^.]*)\.(.*)$/.exec(l) || ['', '', ''], lista = m[1], p = { gen: !lista.trim(), tail: m[2] };
+      MON.forEach(function (x) { p[x[0]] = lista.indexOf(x[2]) >= 0; });
+      return p;
+    },
+    gerar: function (p) {
+      var itens = MON.filter(function (x) { return p[x[0]]; }).map(function (x) { return x[2]; });
+      return '- Monitorização' + (p.gen || !itens.length ? '' : ' com ' + juntaE(itens)) + '.' + (p.tail || '');
+    },
+    padrao: function (t) { // o que entra sem tocar em nada, pelo tipo de anestesia do texto
+      var tot = /INTUBAÇÃO|intubad/i.test(t), geral = tot || /máscara laríngea/i.test(t), p = { gen: false, tail: '' };
+      MON.forEach(function (x) { p[x[0]] = false; });
+      p.ecg = p.spo2 = p.pani = true;
+      p.bis = /\bBIS\b/.test(t); p.etco2 = p.tof = geral; p.gases = p.tesof = tot;
+      p.pai = /Cateterização de artéria/.test(t);
+      return p;
+    }
+  };
+  // ASA e cirurgia: linha opcional no topo (os dois campos são os dois primeiros "___" do texto)
+  function textoCab(t) {
+    var tec = [];
+    if (/INTUBAÇÃO|máscara laríngea|intubad/i.test(t)) tec.push('anestesia geral');
+    if (/Raquianestesia/.test(t)) tec.push('raquianestesia');
+    if (/peridural/i.test(t)) tec.push('anestesia peridural');
+    if (/Realizado bloqueio/.test(t)) tec.push('bloqueio regional');
+    if (!tec.length && /Sedação/i.test(t)) tec.push('sedação');
+    return '- Paciente ASA ___, encaminhado à sala cirúrgica para realização de ___' + (tec.length ? ' sob ' + juntaE(tec) : '') + '.' +
+      (/intubad/i.test(t) ? '' : ' Estável hemodinamicamente, em ventilação espontânea em ar ambiente.');
+  }
+  // padrões gravados no próprio texto ao abrir a página: nada precisa ser ticado para o padrão
+  function normalizarBase() {
+    BASE.forEach(function (it) {
+      if (!it.texto) return;
+      var t = it.texto
+        .replace(/([Pp]aciente descurarizado),/g, '$1 com sugamadex (TOF > 0,9),')
+        .replace(/Preparo de drogas anestésicas,/g, 'Preparo de drogas anestésicas (aspiradas, preparadas e devidamente identificadas),')
+        .replace(/Time-out realizado conforme/g, 'Sign in e time-out realizados conforme');
+      it.texto = t.split('\n').map(function (l) {
+        if (/^- (?:AVP|Venóclise) \d{2}[gG] (?:MSD|MSE)/.test(l) && !/punção/.test(l)) return l.replace(/^(- (?:AVP|Venóclise) \d{2}[gG] (?:MSD|MSE)),? /, '$1, punção única, ');
+        if (CO.raqui.re.test(l)) return CO.raqui.gerar(CO.raqui.ler(l));
+        if (CO.monit.re.test(l)) { var p = CO.monit.ler(l); if (p.gen) { var d = CO.monit.padrao(t); d.tail = p.tail; return CO.monit.gerar(d); } }
+        return l;
+      }).join('\n');
+    });
+  }
   var CVC_LOCAIS = [
     ['jD', 'Jugular D', 'Veia Jugular Direita'], ['jE', 'Jugular E', 'Veia Jugular Esquerda'],
     ['sD', 'Subclávia D', 'Veia Subclávia Direita'], ['sE', 'Subclávia E', 'Veia Subclávia Esquerda'],
@@ -334,9 +429,9 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     avp2: {
       rot: 'AVP extra',
       re: /^- (?:Novo )?AVP (\d{2})G(?: em)? (MSD|MSE)/,
-      padrao: { g: '18', lado: 'MSD' },
-      ler: function (l) { var m = this.re.exec(l); return m ? { g: m[1], lado: m[2] } : null; },
-      gerar: function (p) { return '- Novo AVP ' + p.g + 'G em ' + p.lado + ', com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.'; }
+      padrao: { g: '18', lado: 'MSD', usg: false },
+      ler: function (l) { var m = this.re.exec(l); return m ? { g: m[1], lado: m[2], usg: /ultrassom/.test(l) } : null; },
+      gerar: function (p) { return '- Novo AVP ' + p.g + 'G em ' + p.lado + ', punção única' + (p.usg ? ' guiada por ultrassom' : '') + ', com bom fluxo e sem sinais de infiltração com flush de soro fisiológico.'; }
     },
     cvc: {
       rot: 'Cateter venoso central',
@@ -356,15 +451,15 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     art: {
       rot: 'Artéria (PAi)',
       re: /^- Cateterização de artéria/,
-      padrao: { local: 'rD' },
+      padrao: { local: 'rD', usg: false },
       ler: function (l) {
         var m = /artéria (radial|femoral) (direita|esquerda)/.exec(l);
-        return { local: m ? (m[1] === 'radial' ? 'r' : 'f') + (m[2] === 'direita' ? 'D' : 'E') : 'rD' };
+        return { local: m ? (m[1] === 'radial' ? 'r' : 'f') + (m[2] === 'direita' ? 'D' : 'E') : 'rD', usg: /ultrassom/.test(l) };
       },
       gerar: function (p) {
         var rad = p.local.charAt(0) === 'r', lado = LADO_ART[p.local.charAt(1)];
         return rad
-          ? '- Cateterização de artéria radial ' + lado + ': procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.'
+          ? '- Cateterização de artéria radial ' + lado + ': procedimento realizado sob técnica asséptica após a realização do Teste de Allen modificado OK. Punção' + (p.usg ? ' guiada por ultrassom' : '') + ' com Jelco 20G sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.'
           : '- Cateterização de artéria femoral ' + lado + ': procedimento realizado sob técnica asséptica e guiado por ultrassom. Punção sem intercorrências, para monitorização hemodinâmica contínua e coleta seriada de exames. Realizo curativo.';
       }
     }
@@ -422,7 +517,7 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     var linhas = aplicarVA(it, est.campos).split('\n');
     var temAjustes = COM_AJUSTES.indexOf(it.cat) >= 0;
     // ocular e meias
-    ['ocular', 'meias'].forEach(function (k) {
+    ['ocular', 'meias', 'raqui', 'monit'].forEach(function (k) {
       var idx = acha(linhas, CO[k].re);
       if (idx < 0 || !est.c[k]) return;
       var ini = CO[k].ler(linhas[idx]);
@@ -488,6 +583,7 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
         inserir([def.gerar(mescla(def.padrao, o.p))], /^- Posicionamento/);
       });
     }
+    if (est.c.cab) linhas.unshift(textoCab(linhas.join('\n')));
     return linhas.join('\n');
   }
   function preencher(texto) {
@@ -698,12 +794,14 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       if (id === 'avp2') {
         corpo.push(seg('', ['22', '20', '18', '16'].map(function (g) { return { v: g, r: g + 'G' }; }), p.g, function (v) { guardar({ g: v }); }));
         corpo.push(seg('', [{ v: 'MSD', r: 'MSD' }, { v: 'MSE', r: 'MSE' }], p.lado, function (v) { guardar({ lado: v }); }));
+        corpo.push(seg('', [{ v: false, r: 'Sem USG' }, { v: true, r: 'Com USG' }], !!p.usg, function (v) { guardar({ usg: v }); }));
       } else if (id === 'cvc') {
         corpo.push(seletor('', CVC_LOCAIS.map(function (x) { return { v: x[0], r: x[1] }; }), p.local, function (v) { guardar({ local: v }); }, false));
         corpo.push(seg('', [{ v: 'duplo', r: 'Duplo lúmen' }, { v: 'triplo', r: 'Triplo lúmen' }], p.lumen, function (v) { guardar({ lumen: v }); }));
         corpo.push(seg('', [{ v: 'pontos em bailarina', r: 'Bailarina' }, { v: '3 pontos', r: '3 pontos' }], p.fix, function (v) { guardar({ fix: v }); }));
       } else {
         corpo.push(seletor('', ART_LOCAIS.map(function (x) { return { v: x[0], r: x[1] }; }), p.local, function (v) { guardar({ local: v }); }, false));
+        if (p.local.charAt(0) === 'r') corpo.push(seg('', [{ v: false, r: 'Sem USG' }, { v: true, r: 'Com USG' }], !!p.usg, function (v) { guardar({ usg: v }); }));
       }
     }
     return el('div', { class: 'cartao' }, [
@@ -817,12 +915,52 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     var outro = el('input', { class: 'brancos', type: 'text', inputmode: 'numeric', placeholder: 'outro', 'aria-label': 'Outro nível sensitivo', size: 5,
       value: ['4', '5', '6', '8', '10', '12'].indexOf(v) >= 0 ? '' : v,
       onchange: function (e) { porNivel(e.target.value.replace(/^\s*T/i, '').trim()); } });
-    return el('div', { class: 'painel-fixo' }, [el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Nível sensitivo da raqui' }),
-      el('div', { class: 'linha-nivel' }, [el('div', { class: 'seg', role: 'group', 'aria-label': 'Nível sensitivo' }, botoes), outro])])]);
+    var blocos = [el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Nível sensitivo' }),
+      el('div', { class: 'linha-nivel' }, [el('div', { class: 'seg', role: 'group', 'aria-label': 'Nível sensitivo' }, botoes), outro])])];
+    // técnica da punção: o padrão já está no texto; tocar só para mudar
+    var linhas = aplicarVA(it, est.campos).split('\n'), ir = acha(linhas, CO.raqui.re);
+    if (ir >= 0) {
+      var ini = CO.raqui.ler(linhas[ir]), p = mescla(ini, est.c.raqui);
+      function op(rot, k, ops) { blocos.push(seg(rot, ops.map(function (o) { return { v: o[0], r: o[1] }; }), p[k], function (x) { var pt = {}; pt[k] = x; setC('raqui', pt, ini); })); }
+      op('Posição', 'pos', [['sentado', 'Sentado'], ['DLD', 'DL direito'], ['DLE', 'DL esquerdo']]);
+      op('Espaço', 'esp', [['L2-L3', 'L2-L3'], ['L3-L4', 'L3-L4'], ['L4-L5', 'L4-L5'], ['L5-S1', 'L5-S1']]);
+      op('Agulha', 'ag', [['Whitacre', 'Whitacre'], ['Quincke', 'Quincke']]);
+      op('Calibre', 'cal', [['25', '25G'], ['27', '27G']]);
+      op('Punção', 'tent', [['única', 'Única'], ['múltiplas', 'Múltiplas']]);
+      op('Via', 'via', [['mediana', 'Mediana'], ['paramediana', 'Paramediana']]);
+    }
+    return el('div', { class: 'painel-fixo' }, [el('span', { class: 'titulo-fixo', text: 'Raquianestesia' }), el('div', { class: 'ajustes' }, blocos)]);
+  }
+  function painelMonit(it) {
+    var linhas = aplicarVA(it, est.campos).split('\n'), im = acha(linhas, CO.monit.re);
+    if (im < 0) return null;
+    var ini = CO.monit.ler(linhas[im]), p = mescla(ini, est.c.monit);
+    var filhos = [el('div', { class: 'chips' }, [chip('Escrever só "Monitorização", sem descrever', p.gen, function () { setC('monit', { gen: !p.gen }, ini); })])];
+    if (!p.gen) filhos.push(el('div', { class: 'chips' }, MON.map(function (x) {
+      return chip(x[1], p[x[0]], function () { var pt = {}; pt[x[0]] = !p[x[0]]; setC('monit', pt, ini); });
+    })));
+    return el('details', { class: 'painel' }, [el('summary', { text: 'Monitorização' }), el('div', { class: 'cont' }, filhos)]);
+  }
+  function painelCab(it) {
+    var on = !!est.c.cab, filhos = [chip('Incluir ASA e cirurgia no início', on, function () {
+      if (on) { delete est.c.cab; est.vazios.splice(0, 2); } else { est.c.cab = { on: true }; est.vazios.unshift('', ''); }
+      desenhar();
+    })];
+    if (on) {
+      var asa = est.vazios[0] || '', rom = asa.replace(/\s*E$/, ''), emerg = /E$/.test(asa);
+      function poe(r, e) { est.vazios[0] = r ? r + (e ? ' E' : '') : ''; desenhar(); }
+      filhos.push(el('div', { class: 'ajustes' }, [
+        seg('ASA', ['I', 'II', 'III', 'IV', 'V', 'VI'].map(function (r) { return { v: r, r: r }; }), rom, function (r) { poe(rom === r ? '' : r, emerg); }),
+        el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Emergência' }), chip('E', emerg, function () { poe(rom, !emerg); })]),
+        el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Cirurgia' }), el('input', { class: 'brancos', type: 'text', placeholder: 'nome da cirurgia', 'aria-label': 'Cirurgia', value: est.vazios[1] || '', size: 24,
+          onchange: function (e) { est.vazios[1] = e.target.value; desenhar(); } })])
+      ]));
+    }
+    return el('details', { class: 'painel' }, [el('summary', { text: 'ASA e cirurgia (opcional)' }), el('div', { class: 'cont' }, filhos)]);
   }
   function ajustesDe(it) {
     var pc = COM_AJUSTES.indexOf(it.cat) >= 0;
-    var paineis = [painelNivel(it), painelViaAerea(it)];
+    var paineis = [pc ? painelCab(it) : null, painelNivel(it), painelViaAerea(it), painelMonit(it)];
     if (pc) paineis.push(painelBloqueios(it, false), painelInvasoes(it));
     else if (it.cat === 'Bloqueios') paineis.push(painelBloqueios(it, true));
     else if (it.cat === 'Blocos avulsos') paineis.push(painelInvasoes(it, ['cvc', 'art']));
@@ -830,7 +968,7 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     paineis = paineis.filter(Boolean);
     if (!paineis.length) return null;
     var filhos = paineis;
-    if (!noEstadoInicial()) filhos = filhos.concat([el('button', { class: 'limpar', type: 'button', text: 'Voltar tudo ao padrão', onclick: function () { var v = est.vazios; est = novoEstado(); est.vazios = v; desenhar(); } })]);
+    if (!noEstadoInicial()) filhos = filhos.concat([el('button', { class: 'limpar', type: 'button', text: 'Voltar tudo ao padrão', onclick: function () { var v = est.c.cab ? est.vazios.slice(2) : est.vazios; est = novoEstado(); est.vazios = v; desenhar(); } })]);
     return el('div', { class: 'cartoes', 'aria-label': 'Ajustes' }, filhos);
   }
 
@@ -926,6 +1064,7 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     [].forEach.call(document.querySelectorAll('details.painel'), function (d, i) { if (abertos[i]) d.open = true; });
   }
 
+  normalizarBase();
   desenhar();
 })();
 </script>
