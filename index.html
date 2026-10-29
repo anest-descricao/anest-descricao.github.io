@@ -171,8 +171,40 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
 
   /* ---------- via aérea e primeiro acesso (por regex no próprio texto) ---------- */
   var LINHA_ACESSO = /^- (Venóclise|AVP|Novo AVP)/;
+  // cabeça da linha de intubação: dispositivo + auxílios, até os dois-pontos
+  var RE_IOT = /INTUBAÇÃO (OROTRAQUEAL|NASOTRAQUEAL) atraumática (?:com laringoscopia direta|com videolaringosc[oó]pi[oa](?: \(([^)]*)\))?|por fibroscopia[^:]*)([^:]*):/;
+  var DISP = { ld: 'Laringo direta', vl: 'Vídeo', fb: 'Fibro acordado' };
+  var MARCAS = ['Sem marca', 'McGrath', 'C-MAC', 'GlideScope'];
+  function leIOT(t) {
+    var m = RE_IOT.exec(t); if (!m) return null;
+    var cab = m[0], aux = m[3] || '';
+    var ls = t.split('\n'), iI = acha(ls, /^- INTUBAÇÃO/), iN = acha(ls, /^- Indução anestésica/);
+    return {
+      nasal: m[1] === 'NASOTRAQUEAL',
+      disp: /videolaringosc/.test(cab) ? DISP.vl : (/fibroscopia/.test(cab) ? DISP.fb : DISP.ld),
+      marca: m[2] || 'Sem marca',
+      guia: /fio guia/.test(aux) ? 'Com' : 'Sem',
+      bougie: /bougie/.test(aux) ? 'Com' : 'Sem',
+      magill: /Magill/.test(aux) ? 'Com' : 'Sem',
+      dlt: /duplo-lúmen/.test(t),
+      lista: iI >= 0 && iN >= 0 && iN < iI // fibro só nos textos em lista "- ", com indução antes do tubo
+    };
+  }
+  function vaCampo(id) { return est.campos[id]; }
   function camposVA(it) {
-    var t = it.texto, out = [], m;
+    var t = it.texto, out = [], m, iot = leIOT(t);
+    if (iot) {
+      var dOps = [DISP.ld, DISP.vl]; if (iot.lista && !iot.dlt) dOps.push(DISP.fb);
+      if (iot.lista) out.push({ id: 'disp', rot: 'Intubação', forma: 'seg', ops: dOps, atual: iot.disp }); // ficha numerada descreve o dispositivo em outras linhas
+      var disp = vaCampo('disp') || iot.disp;
+      if (disp === DISP.vl) out.push({ id: 'marca', rot: 'Videolaringoscópio', forma: 'seg', ops: MARCAS, atual: iot.marca });
+      if (disp !== DISP.fb && !iot.dlt) {
+        out.push({ id: 'guia', rot: 'Fio guia (estilete)', forma: 'seg', ops: ['Sem', 'Com'], atual: iot.guia });
+        out.push({ id: 'bougie', rot: 'Bougie', forma: 'seg', ops: ['Sem', 'Com'], atual: iot.bougie });
+      }
+      if (iot.nasal && disp !== DISP.fb) out.push({ id: 'magill', rot: 'Pinça de Magill', forma: 'seg', ops: ['Sem', 'Com'], atual: iot.magill });
+      if (disp === DISP.fb) out.push({ id: 'translar', rot: 'Anestesia translaríngea', forma: 'seg', ops: ['Sem', 'Com'], atual: 'Com' });
+    }
     if ((m = /sonda (simples|aramada) com cuff/.exec(t))) out.push({ id: 'tipo', rot: 'Tubo', forma: 'seg', ops: ['simples', 'aramada'], atual: m[1] });
     if ((m = /cuff número ([\d,]+)/.exec(t))) {
       var dlt = /duplo-lúmen/.test(t);
@@ -183,7 +215,7 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       var cms = []; for (var c = 12; c <= 30; c++) cms.push(String(c));
       out.push({ id: 'cm', rot: 'Posição (cm)', forma: 'sel', ops: comAtual(cms, m[1]), atual: m[1] });
     }
-    if ((m = /Cormack (\d)/.exec(t))) out.push({ id: 'cormack', rot: 'Cormack', forma: 'seg', ops: ['1', '2', '3', '4'], atual: m[1] });
+    if ((m = /Cormack (\d)/.exec(t)) && !(iot && (vaCampo('disp') || iot.disp) === DISP.fb)) out.push({ id: 'cormack', rot: 'Cormack', forma: 'seg', ops: ['1', '2', '3', '4'], atual: m[1] });
     var linhas = t.split('\n'), idx = acha(linhas, LINHA_ACESSO);
     if (idx >= 0) {
       var g = /\b(\d{2})[gG]\b/.exec(linhas[idx]), s = /\b(MSD|MSE)\b/.exec(linhas[idx]);
@@ -211,7 +243,44 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
         linhas[k] = l; t = linhas.join('\n');
       }
     }
-    return t;
+    return aplicarIOT(t, v);
+  }
+  function aplicarIOT(t, v) {
+    var iot = leIOT(t);
+    if (!iot || !(v.disp || v.marca || v.guia || v.bougie || v.magill || v.translar)) return t;
+    var disp = v.disp || iot.disp, rota = iot.nasal ? 'NASOTRAQUEAL' : 'OROTRAQUEAL';
+    if (disp === DISP.fb && !(iot.lista && !iot.dlt)) disp = DISP.ld;
+    var cab;
+    if (disp === DISP.fb) {
+      cab = 'INTUBAÇÃO ' + rota + ' atraumática por fibroscopia flexível, com paciente acordado sob sedação consciente e anestesia "spray as you go" pelo fibroscópio em epiglote e cordas vocais:';
+    } else {
+      var marca = v.marca || iot.marca;
+      var aux = [];
+      if ((v.guia || iot.guia) === 'Com' && !iot.dlt) aux.push('fio guia');
+      if ((v.bougie || iot.bougie) === 'Com' && !iot.dlt) aux.push('bougie');
+      if (iot.nasal && (v.magill || iot.magill) === 'Com') aux.push('pinça de Magill');
+      cab = 'INTUBAÇÃO ' + rota + ' atraumática com ' +
+        (disp === DISP.vl ? 'videolaringoscopia' + (marca && marca !== 'Sem marca' ? ' (' + marca + ')' : '') : 'laringoscopia direta') +
+        (aux.length ? ', com auxílio de ' + juntaE(aux) : '') + ':';
+    }
+    var linhas = t.split('\n'), k = acha(linhas, RE_IOT);
+    linhas[k] = linhas[k].replace(RE_IOT, cab);
+    if (disp !== DISP.fb) return linhas.join('\n');
+    // fibroscopia com paciente acordado: tópica antes, indução só depois do tubo confirmado
+    linhas[k] = linhas[k].replace(/, Cormack \d/, '');
+    var iInd = acha(linhas, /^- Indução anestésica/), ind = linhas[iInd];
+    var iPre = acha(linhas, /^- (Denitrogenação|Pré-oxigenação)/);
+    if (iPre >= 0) linhas[iPre] = '- Pré-oxigenação com O2 a 100% sob cateter nasal 2L/min por 10 min.';
+    var temPreparoNasal = acha(linhas, /^- Preparo de nasofaringe/) >= 0;
+    var antes = ['- Paciente sob sedação consciente, realizada anestesia tópica em cavidade oral' + (iot.nasal ? ' e nasal' : '') +
+      ' com solução paste lidocaína 2% e lidocaína líquida 2% 10ml' + (iot.nasal && !temPreparoNasal ? ', além de preparo nasal com oximetazolina' : '') + '.'];
+    if ((v.translar || 'Com') === 'Com') antes.push('- Realizada anestesia translaríngea com jelco 20G, punção de membrana cricotireóidea sem intercorrências, aspiração de ar, mantido jelco e injetado 2ml lidocaína.');
+    var depois = '- Paciente calmo e colaborativo em todo o procedimento. Após confirmação do tubo pela capnografia, ' +
+      ind.replace(/^- /, '').replace(/^./, function (c) { return c.toLowerCase(); });
+    linhas.splice(k + 1, 0, depois);
+    linhas.splice.apply(linhas, [k, 0].concat(antes));
+    linhas.splice(iInd, 1);
+    return linhas.join('\n').replace(/antes e após a laringoscopia/g, 'antes e após a intubação');
   }
 
   /* ---------- componentes de uma linha: ler → gerar ---------- */
