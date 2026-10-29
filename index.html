@@ -78,6 +78,9 @@ textarea.texto { width: 100%; min-height: 55vh; resize: vertical; font-family: i
 
 /* painéis de ajuste: um bloco por assunto, recolhível */
 details.painel { border: 1px solid var(--linha); border-radius: 6px; }
+.painel-fixo { border: 1px solid var(--linha); border-radius: 6px; padding: 9px 12px 12px; }
+.linha-nivel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.acoes.fim { margin-top: 14px; }
 details.painel > summary { cursor: pointer; font-weight: 700; padding: 9px 12px; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
 details.painel > summary::-webkit-details-marker { display: none; }
 details.painel > summary::after { content: "+"; color: var(--acento); font-weight: 700; }
@@ -798,9 +801,28 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       ])]);
   }
 
+  // nível sensitivo da raqui: preenche, lá em cima, o mesmo campo "T___" do texto
+  function idxNivel(it) {
+    var t = compor(it), m = /nível T(_{2,})/.exec(t);
+    return m ? (t.slice(0, m.index + 7).match(BRANCO) || []).length : -1;
+  }
+  function painelNivel(it) {
+    if (est.edit || it.bq) return null;
+    var i = idxNivel(it); if (i < 0) return null;
+    var v = (est.vazios[i] || '').trim();
+    function porNivel(x) { est.vazios[i] = x; desenhar(); }
+    var botoes = ['4', '5', '6', '8', '10', '12'].map(function (n) {
+      return el('button', { type: 'button', text: 'T' + n, 'aria-pressed': String(v === n), onclick: function () { porNivel(v === n ? '' : n); } });
+    });
+    var outro = el('input', { class: 'brancos', type: 'text', inputmode: 'numeric', placeholder: 'outro', 'aria-label': 'Outro nível sensitivo', size: 5,
+      value: ['4', '5', '6', '8', '10', '12'].indexOf(v) >= 0 ? '' : v,
+      onchange: function (e) { porNivel(e.target.value.replace(/^\s*T/i, '').trim()); } });
+    return el('div', { class: 'painel-fixo' }, [el('div', { class: 'aj' }, [el('span', { class: 'r', text: 'Nível sensitivo da raqui' }),
+      el('div', { class: 'linha-nivel' }, [el('div', { class: 'seg', role: 'group', 'aria-label': 'Nível sensitivo' }, botoes), outro])])]);
+  }
   function ajustesDe(it) {
     var pc = COM_AJUSTES.indexOf(it.cat) >= 0;
-    var paineis = [painelViaAerea(it)];
+    var paineis = [painelNivel(it), painelViaAerea(it)];
     if (pc) paineis.push(painelBloqueios(it, false), painelInvasoes(it));
     else if (it.cat === 'Bloqueios') paineis.push(painelBloqueios(it, true));
     else if (it.cat === 'Blocos avulsos') paineis.push(painelInvasoes(it, ['cvc', 'art']));
@@ -853,8 +875,12 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       alvo.addEventListener('input', function (e) { est.textoEdit = e.target.value; atualizarFaltam(it); });
       corpo = alvo;
     } else { corpo = textoComCampos(compor(it)); }
-    var bCopiar = el('button', { class: 'btn prim', type: 'button', text: 'Copiar' });
-    bCopiar.addEventListener('click', function () { copiar(textoParaCopiar(it), est.edit ? corpo : document.getElementById('texto-atual'), bCopiar); });
+    function botaoCopiar(rot) {
+      var b = el('button', { class: 'btn prim', type: 'button', text: rot });
+      b.addEventListener('click', function () { copiar(textoParaCopiar(it), est.edit ? corpo : document.getElementById('texto-atual'), b); });
+      return b;
+    }
+    var bCopiar = botaoCopiar('Copiar');
     var acoes = [bCopiar,
       est.edit
         ? el('button', { class: 'btn', type: 'button', text: 'Voltar às escolhas (descarta a edição)', onclick: function () { est.edit = false; desenhar(); } })
@@ -876,7 +902,8 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
       est.msg ? el('div', { class: 'nota', role: 'status', text: est.msg }) : null,
       est.salvarAberto ? formReceita(it) : null,
       est.edit ? el('div', { class: 'aviso', text: 'Edição livre: o que você escrever aqui é o que será copiado. Para mexer nas escolhas, volte a elas.' }) : ajustesDe(it),
-      corpo
+      corpo,
+      el('div', { class: 'acoes fim' }, [botaoCopiar('Copiar texto final')])
     ];
     var sec = el('section', { class: 'detalhe', 'aria-label': 'Descrição' }, nodos);
     setTimeout(function () { atualizarFaltam(it); }, 0);
