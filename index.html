@@ -113,6 +113,12 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
 .usoaviso { margin: 6px 0 10px; padding: 8px 10px; border-left: 3px solid var(--alerta); background: var(--alerta-bg); color: var(--alerta); font-size: .85rem; line-height: 1.35; border-radius: 4px; }
 .rodape { max-width: 1100px; margin: 12px auto 0; color: var(--suave); font-size: .85rem; }
 
+/* Tela baixa (notebook de hospital, 03/11): o aviso, a busca e os filtros comiam a altura da coluna
+   e a lista de titulos ficava com altura zero. Aqui a coluna inteira rola como um bloco so. */
+@media (min-width: 761px) and (max-height: 800px) {
+  .lista { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .itens { flex: 0 0 auto; overflow: visible; }
+}
 @media (max-width: 760px) {
   .app { grid-template-columns: minmax(0, 1fr); }
   .lista { position: static; max-height: none; }
@@ -1265,11 +1271,14 @@ details.painel .cont { padding: 4px 12px 12px; display: flex; flex-direction: co
     var it = itemAtual();
     var abertos = [];
     [].forEach.call(document.querySelectorAll('details.painel'), function (d) { abertos.push(d.open); });
+    // a coluna da esquerda guarda a rolagem entre um desenho e outro (sem isso, clicar num titulo devolvia a lista ao topo)
+    var rol = ['.lista', '.itens'].map(function (q) { var n = document.querySelector(q); return n ? n.scrollTop : 0; });
     var detalhe = it ? painelDetalhe(it) : painelInicial();
     var rod = el('div', { class: 'rodape' }, [el('span', { text: 'Página sem dado de paciente: nada é enviado, tudo roda no seu navegador. Receitas e doses salvas ficam só neste navegador. Não digite dados que identifiquem pacientes.' })]);
     var dl = el('datalist', { id: 'lista-conc' }, ['0,2%', '0,25%', '0,375%', '0,5%', '0,75%'].map(function (c) { return el('option', { value: c }); }));
     raiz.replaceChildren(el('div', { class: 'app', 'data-vista': vista }, [painelLista(), detalhe]), rod, dl);
     [].forEach.call(document.querySelectorAll('details.painel'), function (d, i) { if (abertos[i]) d.open = true; });
+    ['.lista', '.itens'].forEach(function (q, i) { var n = document.querySelector(q); if (n && rol[i]) n.scrollTop = rol[i]; });
   }
 
   normalizarBase();
